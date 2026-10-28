@@ -1,0 +1,106 @@
+{
+  "project": {
+    "name": "EcoThread",
+    "description": "Sustainable Circular Fashion & NGO Clothing Redistribution Platform with Home Pickup, QC Grading, Amazon-like Beneficiary Catalog, Tokenized Checkout, and Automated PDF Invoicing.",
+    "sdgAlignment": ["SDG 12: Responsible Consumption and Production", "SDG 1: No Poverty", "SDG 13: Climate Action"],
+    "version": "1.0.0"
+  },
+  "techStack": {
+    "backend": {
+      "language": "Java 21 (LTS)",
+      "framework": "Spring Boot 3.3.x",
+      "buildTool": "Maven 3.9+",
+      "modules": [
+        "spring-boot-starter-web",
+        "spring-boot-starter-data-jpa",
+        "spring-boot-starter-security",
+        "spring-boot-starter-validation",
+        "jjwt (JSON Web Token)",
+        "openpdf / itext7 (Donation Receipt & 80G Tax Invoice PDF Generator)",
+        "springdoc-openapi-starter-webmvc-ui (Swagger/OpenAPI docs)"
+      ]
+    },
+    "database": {
+      "primary": "PostgreSQL (or H2 for local zero-config development)",
+      "orm": "Hibernate / JPA"
+    },
+    "frontend": {
+      "framework": "React 19 / Vite",
+      "styling": "Tailwind CSS + Lucide Icons",
+      "stateAndRouting": "React Router v6, Axios, TanStack Query"
+    },
+    "architecture": "Decoupled REST API + Single Page Application (SPA)"
+  },
+  "userRoles": [
+    {
+      "role": "ROLE_DONOR",
+      "capabilities": [
+        "Schedule doorstep clothing pickups with date/time slot & address",
+        "Specify garment types, estimate bag count, and upload photos",
+        "Live status tracking of pickup request (Pending -> Assigned -> Picked Up -> Verified)",
+        "Download official 80G tax-exempt invoice / Donation Impact Certificate PDF",
+        "View personal environmental impact dashboard (Water saved in Liters, CO2 prevented in Kg)"
+      ]
+    },
+    {
+      "role": "ROLE_BENEFICIARY",
+      "capabilities": [
+        "Browse Amazon-style catalog of cleaned, refurbished Grade-A clothes",
+        "Filter by category (Men, Women, Kids), size (S, M, L, XL), season (Winter, Summer, Rain)",
+        "Cart & Zero-cost checkout using seasonal NGO monthly allowance credits",
+        "Order history & real-time delivery tracking to home or community pickup center"
+      ]
+    },
+    {
+      "role": "ROLE_LOGISTICS",
+      "capabilities": [
+        "Driver task dashboard showing optimized cluster pickup routes by pincode/zone",
+        "Verify bag count on doorstep and update status to 'PICKED_UP'",
+        "Deliver collected clothes to NGO warehouse hub"
+      ]
+    },
+    {
+      "role": "ROLE_ADMIN",
+      "capabilities": [
+        "Warehouse QC workstation: grade intake garments (Grade A -> Catalog, Grade B -> Bulk Drives, Grade C -> Downcycling)",
+        "Manage product listings, inventory levels, and categories",
+        "Allocate and manage monthly credit quotas for registered beneficiaries",
+        "Generate platform-wide sustainability and financial audit reports"
+      ]
+    }
+  ],
+  "coreEntities": [
+    {
+      "name": "User",
+      "fields": ["id", "fullName", "email", "passwordHash", "phone", "role", "credits", "createdAt"]
+    },
+    {
+      "name": "Address",
+      "fields": ["id", "userId", "streetAddress", "city", "state", "pincode", "latitude", "longitude"]
+    },
+    {
+      "name": "PickupRequest",
+      "fields": ["id", "donorId", "driverId", "pickupAddressId", "scheduledDate", "timeSlot", "bagCount", "clothTypes", "status (PENDING, ASSIGNED, PICKED_UP, DELIVERED_TO_HUB, COMPLETED, CANCELLED)", "driverNotes", "createdAt"]
+    },
+    {
+      "name": "InventoryItem",
+      "fields": ["id", "pickupRequestId", "title", "description", "category", "targetGender", "size", "conditionGrade (GRADE_A, GRADE_B, RECYCLE_DOWNGRADE)", "imageUrl", "isAvailable", "creditCost (usually 0 or token 1-5 credits)"]
+    },
+    {
+      "name": "BeneficiaryOrder",
+      "fields": ["id", "beneficiaryId", "shippingAddressId", "totalCreditsSpent", "orderStatus (ORDERED, DISPATCHED, OUT_FOR_DELIVERY, DELIVERED)", "createdAt"]
+    },
+    {
+      "name": "DonationInvoice",
+      "fields": ["id", "pickupRequestId", "donorId", "invoiceNumber", "totalItemsVerified", "co2SavedKg", "waterSavedLiters", "pdfFileUrl", "issuedAt"]
+    }
+  ],
+  "instructionsForAntigravity": [
+    "1. Initialize Spring Boot backend in backend/ with Maven wrapper, Java 21, and application.properties configured for H2 dev / PostgreSQL prod.",
+    "2. Scaffold security package with JWT Auth Filter, SecurityFilterChain, and AuthenticationController (/api/auth/register, /api/auth/login).",
+    "3. Build REST endpoints for /api/pickups, /api/catalog, /api/orders, and /api/invoices/download/{id}.",
+    "4. Implement OpenPDF service to render official 80G tax receipt with donor name, item breakdown, and eco-impact badge.",
+    "5. Initialize frontend in frontend/ with Vite + React + Tailwind CSS, structuring Donor Portal, Beneficiary Amazon-style Store, and Logistics Dashboard.",
+    "6. Seed database with initial categories, mock donations, and catalog items for immediate testing."
+  ]
+}
