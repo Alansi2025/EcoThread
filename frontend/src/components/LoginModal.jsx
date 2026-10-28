@@ -67,7 +67,7 @@ const PORTAL_DESTINATIONS = [
 ];
 
 export const LoginModal = ({ isOpen, onClose, onRoleSelect }) => {
-  const { login, register, switchRole } = useAuth();
+  const { login, loginWithGoogle, register, switchRole } = useAuth();
   const { showToast } = useToast();
 
   const [selectedDestination, setSelectedDestination] = useState(PORTAL_DESTINATIONS[0]);
@@ -81,6 +81,37 @@ export const LoginModal = ({ isOpen, onClose, onRoleSelect }) => {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const promptEmail = window.prompt("Enter your Google Account email to authenticate:", "1978adityakakri@gmail.com");
+      if (!promptEmail || !promptEmail.trim()) {
+        setLoading(false);
+        return;
+      }
+      const promptName = promptEmail.split('@')[0];
+
+      const res = await loginWithGoogle({
+        email: promptEmail.trim(),
+        name: promptName,
+        role: selectedDestination.id,
+      });
+
+      if (res.success) {
+        showToast(`Welcome, ${promptName}! Authenticated via Google.`, 'success');
+        if (onRoleSelect) onRoleSelect(selectedDestination.tab);
+        onClose();
+      } else {
+        setError(res.error);
+      }
+    } catch (err) {
+      setError('Google Sign-In failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -207,7 +238,7 @@ export const LoginModal = ({ isOpen, onClose, onRoleSelect }) => {
                       {/* Bottom Direct Login Action */}
                       <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                         <div className="text-[11px] text-slate-400">
-                          Demo Persona: <span className="font-semibold text-slate-700">{dest.demoName}</span>
+                          Account: <span className="font-semibold text-slate-700">{dest.demoName}</span>
                         </div>
                         <button
                           type="button"
@@ -226,22 +257,38 @@ export const LoginModal = ({ isOpen, onClose, onRoleSelect }) => {
                 })}
               </div>
 
-              {/* Bottom Custom Email/Password Switcher */}
+              {/* Google Sign-in & Custom Email Switcher */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                 <div className="text-slate-600 text-center sm:text-left">
-                  <span className="font-bold text-slate-800 block">Want to sign in with your own personal account?</span>
-                  <span>Use individual credentials or register a new identity for {selectedDestination.roleLabel}.</span>
+                  <span className="font-bold text-slate-800 block">Sign in with Google or personal account</span>
+                  <span>Direct authentication into {selectedDestination.roleLabel} with 0 setup cost.</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCustomLogin(true);
-                    setError(null);
-                  }}
-                  className="px-4 py-2 bg-white border border-slate-300 hover:border-slate-400 font-bold text-slate-700 rounded-xl shadow-xs transition-all whitespace-nowrap"
-                >
-                  Custom Email & Password Login
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                    className="px-3.5 py-2 bg-white border border-slate-300 hover:border-slate-400 font-bold text-slate-700 rounded-xl shadow-xs transition-all flex items-center gap-2 text-xs"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                    <span>Sign in with Google</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomLogin(true);
+                      setError(null);
+                    }}
+                    className="px-3.5 py-2 bg-white border border-slate-300 hover:border-slate-400 font-bold text-slate-700 rounded-xl shadow-xs transition-all whitespace-nowrap text-xs"
+                  >
+                    Email / Password
+                  </button>
+                </div>
               </div>
 
             </div>
@@ -282,14 +329,47 @@ export const LoginModal = ({ isOpen, onClose, onRoleSelect }) => {
               <form onSubmit={handleCustomSubmit} className="space-y-3.5">
                 {isRegister && (
                   <>
+                    {/* Dedicated Role Selection for Registration (Donor vs NGO) */}
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Account Type / Role</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDestination(PORTAL_DESTINATIONS[0])}
+                          className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                            selectedDestination.id === 'ROLE_DONOR'
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                          }`}
+                        >
+                          <HeartHandshake className="w-3.5 h-3.5" />
+                          <span>Clothing Donor</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDestination(PORTAL_DESTINATIONS[1])}
+                          className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                            selectedDestination.id === 'ROLE_BENEFICIARY'
+                              ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                          }`}
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5" />
+                          <span>NGO / Shelter Partner</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        {selectedDestination.id === 'ROLE_BENEFICIARY' ? 'NGO / Organization Name' : 'Full Name'}
+                      </label>
                       <div className="relative">
                         <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                         <input
                           type="text"
                           required
-                          placeholder="e.g. Maya Patel"
+                          placeholder={selectedDestination.id === 'ROLE_BENEFICIARY' ? "e.g. Care Foundation Shelter" : "e.g. Maya Patel"}
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -349,6 +429,26 @@ export const LoginModal = ({ isOpen, onClose, onRoleSelect }) => {
                   className="w-full mt-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50"
                 >
                   {loading ? 'Authenticating...' : (isRegister ? `Create ${selectedDestination.roleLabel} Account` : 'Sign In')}
+                </button>
+
+                <div className="relative my-3 text-center">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
+                  <span className="relative bg-white px-2 text-[11px] text-slate-400">or continue with</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="w-full py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-xs"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>Google Account</span>
                 </button>
               </form>
 

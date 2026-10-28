@@ -10,8 +10,9 @@ import com.ecothread.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 @Service
 public class PickupService {
@@ -39,20 +40,41 @@ public class PickupService {
                 request.getCity(),
                 request.getState(),
                 request.getPincode(),
-                12.9716, // Default demo geo coordinates (e.g., Bengaluru)
+                12.9716,
                 77.5946
         );
         addressRepository.save(address);
+
+        String clothTypes = request.getClothTypes();
+        if ((clothTypes == null || clothTypes.isBlank()) && request.getTitle() != null) {
+            clothTypes = request.getTitle();
+        }
 
         PickupRequest pickup = new PickupRequest(
                 donor,
                 address,
                 request.getScheduledDate(),
                 request.getTimeSlot(),
-                request.getBagCount(),
-                request.getClothTypes()
+                request.getBagCount() != null ? request.getBagCount() : 1,
+                clothTypes
         );
-        pickup.setEstimatedWeightKg(request.getEstimatedWeightKg() != null ? request.getEstimatedWeightKg() : request.getBagCount() * 5.0);
+
+        pickup.setTitle(request.getTitle() != null ? request.getTitle() : "Donated Clothing Lot");
+        pickup.setCategory(request.getCategory() != null ? request.getCategory() : "Apparel");
+        pickup.setQuantity(request.getQuantity() != null ? request.getQuantity() : (request.getBagCount() != null ? request.getBagCount() * 5 : 5));
+        pickup.setUnit(request.getUnit() != null ? request.getUnit() : "items");
+        pickup.setConditionDescription(request.getConditionDescription() != null ? request.getConditionDescription() : "Good condition reusable clothing");
+        pickup.setImageUrl(request.getImageUrl());
+        pickup.setQualityScore(request.getQualityScore());
+        pickup.setPickupOrDropoff(request.getPickupOrDropoff() != null ? request.getPickupOrDropoff() : "PICKUP");
+        pickup.setAdditionalInstructions(request.getAdditionalInstructions());
+        pickup.setStatus(PickupStatus.SUBMITTED);
+
+        double estWeight = request.getEstimatedWeightKg() != null 
+                ? request.getEstimatedWeightKg() 
+                : (request.getBagCount() != null ? request.getBagCount() * 4.5 : 4.5);
+        pickup.setEstimatedWeightKg(estWeight);
+
         return pickupRequestRepository.save(pickup);
     }
 
@@ -64,13 +86,61 @@ public class PickupService {
         return pickupRequestRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    public List<PickupRequest> getAvailableDonations() {
+        return pickupRequestRepository.findByStatusInAndAssignedNgoUserIsNullOrderByCreatedAtDesc(
+                List.of(PickupStatus.SUBMITTED, PickupStatus.PENDING, PickupStatus.UNDER_REVIEW)
+        );
+    }
+
+    public List<PickupRequest> getAcceptedDonations(Long ngoUserId) {
+        return pickupRequestRepository.findByAssignedNgoUserIdOrderByCreatedAtDesc(ngoUserId);
+    }
+
     public List<PickupRequest> getPickupsForDriver(Long driverId) {
         return pickupRequestRepository.findByDriverIdOrderByScheduledDateAsc(driverId);
     }
 
     public PickupRequest getPickupById(Long id) {
         return pickupRequestRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Pickup request not found: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Donation request not found: " + id));
+    }
+
+    @Transactional
+    public PickupRequest acceptDonation(Long pickupId, User ngoUser, String notes) {
+        PickupRequest pickup = getPickupById(pickupId);
+
+        // Strict Concurrency & Multi-NGO Protection
+        if (pickup.getAssignedNgoUser() != null && !pickup.getAssignedNgoUser().getId().equals(ngoUser.getId())) {
+            throw new IllegalStateException("This donation has already been accepted by another organization: " 
+                    + (pickup.getAssignedNgoUser().getOrganizationName() != null ? pickup.getAssignedNgoUser().getOrganizationName() : pickup.getAssignedNgoUser().getFullName()));
+        }
+
+        if (pickup.getStatus() != PickupStatus.SUBMITTED && pickup.getStatus() != PickupStatus.PENDING && pickup.getStatus() != PickupStatus.UNDER_REVIEW) {
+            throw new IllegalStateException("Donation cannot be accepted in its current status: " + pickup.getStatus());
+        }
+
+        pickup.setAssignedNgoUser(ngoUser);
+        pickup.setStatus(PickupStatus.ACCEPTED);
+        if (notes != null && !notes.isBlank()) {
+            pickup.setDriverNotes("NGO Acceptance: " + notes);
+        }
+
+        return pickupRequestRepository.save(pickup);
+    }
+
+    @Transactional
+    public PickupRequest declineDonation(Long pickupId, User ngoUser, String reason) {
+        PickupRequest pickup = getPickupById(pickupId);
+
+        if (pickup.getAssignedNgoUser() == null || !pickup.getAssignedNgoUser().getId().equals(ngoUser.getId())) {
+            throw new IllegalArgumentException("You can only release donations accepted by your organization");
+        }
+
+        pickup.setAssignedNgoUser(null);
+        pickup.setStatus(PickupStatus.SUBMITTED);
+        pickup.setDriverNotes(reason != null ? "Released by NGO: " + reason : "Released back to available pool");
+
+        return pickupRequestRepository.save(pickup);
     }
 
     @Transactional
@@ -102,16 +172,15 @@ public class PickupService {
     public PickupRequest cancelPickup(Long id, User currentUser, com.ecothread.dto.CancelPickupRequest request) {
         PickupRequest pickup = getPickupById(id);
 
-        // Security check: Only the donor or Admin/Logistics can cancel
         if (currentUser != null && currentUser.getRole() == Role.ROLE_DONOR &&
                 !pickup.getDonor().getId().equals(currentUser.getId())) {
-            throw new IllegalArgumentException("You can only cancel your own pickup requests");
+            throw new IllegalArgumentException("You can only cancel your own donation requests");
         }
 
         if (pickup.getStatus() == PickupStatus.PICKED_UP ||
                 pickup.getStatus() == PickupStatus.DELIVERED_TO_HUB ||
                 pickup.getStatus() == PickupStatus.COMPLETED) {
-            throw new IllegalStateException("Cannot cancel pickup that is already " + pickup.getStatus());
+            throw new IllegalStateException("Cannot cancel donation that is already " + pickup.getStatus());
         }
 
         pickup.setStatus(PickupStatus.CANCELLED);
@@ -128,14 +197,14 @@ public class PickupService {
 
         if (currentUser != null && currentUser.getRole() == Role.ROLE_DONOR &&
                 !pickup.getDonor().getId().equals(currentUser.getId())) {
-            throw new IllegalArgumentException("You can only reschedule your own pickup requests");
+            throw new IllegalArgumentException("You can only reschedule your own donation requests");
         }
 
         if (pickup.getStatus() == PickupStatus.PICKED_UP ||
                 pickup.getStatus() == PickupStatus.DELIVERED_TO_HUB ||
                 pickup.getStatus() == PickupStatus.COMPLETED ||
                 pickup.getStatus() == PickupStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot reschedule pickup with status " + pickup.getStatus());
+            throw new IllegalStateException("Cannot reschedule donation with status " + pickup.getStatus());
         }
 
         pickup.setScheduledDate(request.getNewScheduledDate());
@@ -146,6 +215,54 @@ public class PickupService {
         return pickupRequestRepository.save(pickup);
     }
 
+    public Map<String, Object> getDonorStats(Long donorId) {
+        List<PickupRequest> myPickups = pickupRequestRepository.findByDonorIdOrderByCreatedAtDesc(donorId);
+        long total = myPickups.size();
+        long completed = myPickups.stream().filter(p -> p.getStatus() == PickupStatus.COMPLETED).count();
+        long pending = myPickups.stream().filter(p -> p.getStatus() == PickupStatus.SUBMITTED 
+                || p.getStatus() == PickupStatus.PENDING 
+                || p.getStatus() == PickupStatus.UNDER_REVIEW 
+                || p.getStatus() == PickupStatus.ACCEPTED 
+                || p.getStatus() == PickupStatus.PICKUP_SCHEDULED 
+                || p.getStatus() == PickupStatus.ASSIGNED 
+                || p.getStatus() == PickupStatus.PICKED_UP).count();
+        
+        double totalKg = myPickups.stream()
+                .filter(p -> p.getStatus() == PickupStatus.COMPLETED)
+                .mapToDouble(p -> p.getEstimatedWeightKg() != null ? p.getEstimatedWeightKg() : 5.0)
+                .sum();
+        long recoveredItems = myPickups.stream()
+                .filter(p -> p.getStatus() == PickupStatus.COMPLETED)
+                .mapToLong(p -> p.getQuantity() != null ? p.getQuantity() : 10)
+                .sum();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalDonations", total);
+        stats.put("pendingDonations", pending);
+        stats.put("completedDonations", completed);
+        stats.put("recoveredItemsCount", recoveredItems);
+        stats.put("totalWeightKg", totalKg);
+        stats.put("waterSavedLiters", recoveredItems * 2700.0);
+        stats.put("co2PreventedKg", recoveredItems * 3.6);
+        return stats;
+    }
+
+    public Map<String, Object> getNgoStats(Long ngoUserId) {
+        long available = pickupRequestRepository.countByStatusInAndAssignedNgoUserIsNull(
+                List.of(PickupStatus.SUBMITTED, PickupStatus.PENDING, PickupStatus.UNDER_REVIEW)
+        );
+        long accepted = pickupRequestRepository.countByAssignedNgoUserId(ngoUserId);
+        long completed = pickupRequestRepository.countByAssignedNgoUserIdAndStatus(ngoUserId, PickupStatus.COMPLETED);
+        long pendingCollections = accepted - completed;
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("availableDonations", available);
+        stats.put("acceptedDonations", accepted);
+        stats.put("completedCollections", completed);
+        stats.put("pendingCollections", Math.max(0, pendingCollections));
+        return stats;
+    }
+
     @Transactional
     public DonationInvoice ensureInvoiceExists(PickupRequest pickup, Integer verifiedCount) {
         return donationInvoiceRepository.findByPickupRequestId(pickup.getId())
@@ -153,8 +270,8 @@ public class PickupService {
                     int count = (verifiedCount != null && verifiedCount > 0)
                             ? verifiedCount
                             : (pickup.getBagCount() != null ? pickup.getBagCount() * 8 : 10);
-                    double waterSaved = count * 2700.0; // 2,700 Liters saved per garment reused
-                    double co2Saved = count * 3.6;      // 3.6 kg CO2 prevented per garment reused
+                    double waterSaved = count * 2700.0;
+                    double co2Saved = count * 3.6;
                     String invoiceNum = "ECO-80G-" + java.time.Year.now().getValue() + "-" +
                             String.format("%04d", (pickup.getId() * 37) % 9999 + 1);
 

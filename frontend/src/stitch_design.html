@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EcoThread — Circular Operations &amp; Digital Product Passports</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "error": "#ffb4ab",
+            "secondary-container": "#00bd85",
+            "error-container": "#93000a",
+            "on-primary-fixed": "#002113",
+            "on-error-container": "#ffdad6",
+            "surface-container": "#1a202c",
+            "primary": "#4edea3",
+            "on-tertiary": "#003732",
+            "inverse-primary": "#006c49",
+            "on-primary": "#003824",
+            "on-surface": "#dde2f3",
+            "surface-container-low": "#161c28",
+            "tertiary-container": "#42b4a7",
+            "secondary-fixed-dim": "#45dfa4",
+            "on-secondary-fixed": "#002114",
+            "on-error": "#690005",
+            "surface-container-highest": "#2f3542",
+            "on-secondary-container": "#00452e",
+            "on-surface-variant": "#bbcabf",
+            "surface-dim": "#0e131f",
+            "background": "#0e131f",
+            "tertiary": "#6bd8cb",
+            "surface-container-lowest": "#080e1a",
+            "inverse-surface": "#dde2f3",
+            "on-tertiary-container": "#00413b",
+            "on-background": "#dde2f3",
+            "on-secondary": "#003825",
+            "primary-fixed": "#6ffbbe",
+            "secondary-fixed": "#68fcbf",
+            "inverse-on-surface": "#2b303d",
+            "surface-bright": "#343946",
+            "primary-fixed-dim": "#4edea3",
+            "outline": "#86948a",
+            "primary-container": "#10b981",
+            "on-tertiary-fixed": "#00201d",
+            "on-primary-container": "#00422b",
+            "tertiary-fixed-dim": "#6bd8cb",
+            "outline-variant": "#3c4a42",
+            "on-secondary-fixed-variant": "#005137",
+            "surface": "#0e131f",
+            "secondary": "#45dfa4",
+            "surface-container-high": "#242a36",
+            "on-primary-fixed-variant": "#005236",
+            "surface-tint": "#4edea3",
+            "tertiary-fixed": "#89f5e7",
+            "on-tertiary-fixed-variant": "#005049",
+            "surface-variant": "#2f3542"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2.5rem",
+            "space-md": "1rem",
+            "margin": "2rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "gutter": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "telemetry-metric": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "headline-xl-mobile": ["Plus Jakarta Sans"],
+            "label-sm": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "telemetry-pill": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "mono": ["JetBrains Mono", "monospace"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["1.375rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "headline-lg": ["1.75rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-xl": ["2.5rem", { "lineHeight": "3rem", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "telemetry-metric": ["1.5rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-xl-mobile": ["1.875rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-sm": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "body-sm": ["0.75rem", { "lineHeight": "1.125rem", "fontWeight": "400" }],
+            "label-md": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "body-lg": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+            "telemetry-pill": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "body-md": ["0.875rem", { "lineHeight": "1.375rem", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    
+    /* Radar sweep animation */
+    @keyframes radar-sweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-radar {
+      animation: radar-sweep 5s linear infinite;
+    }
+    
+    /* Pulse glow */
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(1.15); }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2.5s ease-in-out infinite;
+    }
+
+    /* Scan line */
+    @keyframes scan-laser {
+      0% { top: 0%; opacity: 0.8; }
+      50% { top: 96%; opacity: 1; }
+      100% { top: 0%; opacity: 0.8; }
+    }
+    .animate-scan-laser {
+      animation: scan-laser 3.2s ease-in-out infinite;
+    }
+
+    /* Glass card styling */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid rgba(60, 74, 66, 0.45);
+    }
+    .glass-panel-elevated {
+      background: rgba(22, 28, 40, 0.90);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(78, 222, 163, 0.25);
+    }
+    .laser-border-top {
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen selection:bg-primary-container selection:text-on-primary-container font-body-md text-body-md overflow-x-hidden">
+<!-- Ambient Viewport Header Glow -->
+<div class="fixed top-0 left-0 right-0 h-96 pointer-events-none z-0" style="background: radial-gradient(ellipse at 50% -10%, rgba(16, 185, 129, 0.12) 0%, rgba(66, 180, 167, 0.04) 45%, transparent 75%);"></div>
+<!-- ================= TOP APP BAR (Shared Components: TopNavBar) ================= -->
+<header class="docked full-width top-0 z-50 fixed w-full bg-surface-container-low/80 backdrop-blur-md dark:bg-surface-container-low/80 shadow-sm border-b border-outline-variant/30">
+<div class="w-full px-6 py-3 flex items-center justify-between mx-auto max-w-[1600px]">
+<!-- Brand & Search / Workspace selector -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high border border-primary/30 flex items-center justify-center shadow-[0_0_16px_rgba(16,185,129,0.3)]">
+<span class="material-symbols-outlined text-primary" data-icon="all_inclusive" style="font-variation-settings: 'FILL' 1;">all_inclusive</span>
+</div>
+<span class="text-headline-md font-headline-md tracking-tight font-bold text-on-surface dark:text-on-surface">EcoThread</span>
+</div>
+<!-- Workspace Dropdown Pill -->
+<div class="hidden sm:flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/40 hover:border-primary/40 transition-colors cursor-pointer">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+<span class="text-label-md font-label-md text-on-surface">EcoThread Enterprise</span>
+<span class="material-symbols-outlined text-on-surface-variant text-base" data-icon="expand_more">expand_more</span>
+</div>
+<!-- Search Bar (on_left) -->
+<div class="hidden lg:flex items-center gap-2 bg-surface-container-lowest/80 px-3.5 py-1.5 rounded-lg border border-outline-variant/40 w-72 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/40 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="search">search</span>
+<input class="bg-transparent text-label-md font-label-md text-on-surface placeholder-on-surface-variant/60 focus:outline-none w-full border-none p-0 focus:ring-0" placeholder="Search garment ID, NGO hub, or hash..." type="text"/>
+<span class="text-telemetry-pill font-telemetry-pill px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">⌘K</span>
+</div>
+</div>
+<!-- Center Links (Desktop only) -->
+<nav class="hidden xl:flex items-center gap-6">
+<a class="text-primary dark:text-primary font-semibold border-b-2 border-primary pb-1 font-label-md text-label-md transition-colors" href="#telemetry">Telemetry</a>
+<a class="text-on-surface-variant hover:text-on-surface dark:text-on-surface-variant dark:hover:text-on-surface transition-colors font-label-md text-label-md" href="#radar">Logistics Radar</a>
+<a class="text-on-surface-variant hover:text-on-surface dark:text-on-surface-variant dark:hover:text-on-surface transition-colors font-label-md text-label-md" href="#diagnostics">AI Diagnostics</a>
+<a class="text-on-surface-variant hover:text-on-surface dark:text-on-surface-variant dark:hover:text-on-surface transition-colors font-label-md text-label-md" href="#boutique">Redistribution Boutique</a>
+<a class="text-on-surface-variant hover:text-on-surface dark:text-on-surface-variant dark:hover:text-on-surface transition-colors font-label-md text-label-md" href="#passports">Product Passports</a>
+</nav>
+<!-- Trailing Action Badges & Profile -->
+<div class="flex items-center gap-3.5">
+<!-- 150 Credits pill badge -->
+<div class="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(78,222,163,0.15)]">
+<span class="material-symbols-outlined text-primary text-base" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="text-telemetry-pill font-telemetry-pill tracking-wider text-primary">150 Credits</span>
+</div>
+<!-- Trailing icon buttons -->
+<button class="relative p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/50 transition-colors duration-150 active:scale-95 transition-transform duration-150 ease-out" title="Notifications">
+<span class="material-symbols-outlined text-xl" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary ring-2 ring-surface-container-low"></span>
+</button>
+<button class="p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/50 transition-colors duration-150 active:scale-95 transition-transform duration-150 ease-out" title="Operations Configuration">
+<span class="material-symbols-outlined text-xl" data-icon="tune">tune</span>
+</button>
+<!-- Divider -->
+<div class="h-6 w-px bg-outline-variant/40 hidden sm:block"></div>
+<!-- Luxury Partner Profile Avatar -->
+<div class="flex items-center gap-2.5 pl-1 cursor-pointer">
+<div class="relative">
+<img class="w-8 h-8 rounded-full object-cover ring-1 ring-primary/60 shadow-[0_0_8px_rgba(78,222,163,0.25)]" data-alt="Sophisticated portrait photograph of Dr. Elena Vance in an ultra-modern climate tech laboratory, surrounded by ambient dark glass surfaces with soft emerald rim lighting, wearing minimalist structured sustainable recycled textile blazer, focused cinematic composure with razor sharp depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-sqwfHM6Y54RhTvaHkCeqG4AC49SOnBed_Rl_VqVWHTmWUgdseIy373OSjB19fsCoWap_bsG6VoA7d_gI9oBVilAJxJVjKo_1mSerownX11iQdKQgiLFEEaI8UIFf1p3XACdO1y8pVNNpb1gTr4rTd-ov650RRNzkbjDRHo4mAbJ6o0DUzHqmfs21khLcGRbS6DNTPG9aFRVhSvpC8IaOSw_4qz5-ngIJevWdEtGNTW5oYabi4ffuJRg9j8r8TLaxDypFRseGBCUd"/>
+<span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary-container border-2 border-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-[8px] text-on-primary-container font-bold" data-icon="verified">verified</span>
+</span>
+</div>
+<div class="hidden 2xl:flex flex-col text-left">
+<span class="text-label-sm font-label-sm text-on-surface font-semibold leading-tight">Dr. Elena Vance</span>
+<span class="text-telemetry-pill font-telemetry-pill text-on-surface-variant">Head of Circularity</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- ================= LAYOUT CONTAINER ================= -->
+<div class="pt-16 flex min-h-screen">
+<!-- ================= FIXED LEFT NAV RAIL (Shared Components: SideNavBar) ================= -->
+<aside class="h-screen w-64 fixed left-0 top-0 pt-16 flex-col z-40 bg-surface-container-lowest dark:bg-surface-container-lowest border-r border-outline-variant/30 hidden lg:flex">
+<div class="flex flex-col h-full justify-between p-4">
+<!-- Header Info & CTA -->
+<div class="space-y-4">
+<div class="px-2 pt-2">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-md bg-surface-container-high border border-primary/40 flex items-center justify-center shadow-[0_0_10px_rgba(78,222,163,0.25)]">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="eco">eco</span>
+</div>
+<div>
+<p class="text-headline-md font-headline-md font-bold text-primary dark:text-primary text-sm leading-tight">EcoThread Operations</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-[11px]">Circular Protocol v4.2</p>
+</div>
+</div>
+</div>
+<!-- Quick Action CTA -->
+<button class="w-full bg-primary-container hover:brightness-110 active:scale-[0.99] transition-transform duration-100 text-on-primary-container font-label-md text-label-md py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 shadow-[0_0_16px_rgba(16,185,129,0.25)]">
+<span class="material-symbols-outlined text-lg" data-icon="add_circle">add_circle</span>
+<span>New Garment Intake</span>
+</button>
+<!-- Primary Rail Navigation (Active: Overview) -->
+<nav class="space-y-1 pt-2">
+<a class="bg-surface-container-high text-primary border-l-2 border-primary font-semibold px-4 py-2.5 rounded-r-lg flex items-center gap-3 text-label-md font-label-md" href="#overview">
+<span class="material-symbols-outlined text-primary" data-icon="analytics" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span>Overview</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low px-4 py-2.5 rounded-lg flex items-center gap-3 transition-colors text-label-md font-label-md" href="#radar">
+<span class="material-symbols-outlined text-base" data-icon="radar">radar</span>
+<span>Live Dispatch Radar</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low px-4 py-2.5 rounded-lg flex items-center gap-3 transition-colors text-label-md font-label-md" href="#diagnostics">
+<span class="material-symbols-outlined text-base" data-icon="document_scanner">document_scanner</span>
+<span>Garment Diagnostics</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low px-4 py-2.5 rounded-lg flex items-center gap-3 transition-colors text-label-md font-label-md" href="#boutique">
+<span class="material-symbols-outlined text-base" data-icon="storefront">storefront</span>
+<span>Redistribution Boutique</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low px-4 py-2.5 rounded-lg flex items-center gap-3 transition-colors text-label-md font-label-md" href="#passports">
+<span class="material-symbols-outlined text-base" data-icon="qr_code_2">qr_code_2</span>
+<span>Digital Passports</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low px-4 py-2.5 rounded-lg flex items-center gap-3 transition-colors text-label-md font-label-md" href="#provenance">
+<span class="material-symbols-outlined text-base" data-icon="verified_user">verified_user</span>
+<span>Audit &amp; Provenance</span>
+</a>
+</nav>
+</div>
+<!-- Footer Utilities -->
+<div class="border-t border-outline-variant/30 pt-3 space-y-1">
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low px-4 py-2 rounded-lg flex items-center gap-3 transition-colors text-label-md font-label-md" href="#docs">
+<span class="material-symbols-outlined text-base" data-icon="help_outline">help_outline</span>
+<span>Documentation</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low px-4 py-2 rounded-lg flex items-center gap-3 transition-colors text-label-md font-label-md" href="#settings">
+<span class="material-symbols-outlined text-base" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<div class="px-4 py-2 mt-2 bg-surface-container-low/60 rounded-lg border border-outline-variant/20 flex items-center justify-between text-telemetry-pill font-telemetry-pill text-on-surface-variant">
+<span>GRID SYNCHRONIZED</span>
+<span class="flex items-center gap-1 text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              99.98%
+            </span>
+</div>
+</div>
+</div>
+</aside>
+<!-- ================= MAIN CONTENT CANVAS ================= -->
+<main class="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto z-10 w-full">
+<!-- ================= SECTION 1: CIRCULAR IMPACT TELEMETRY HERO ================= -->
+<section class="space-y-4" id="telemetry">
+<!-- Section Header & Status Pill Banner -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-telemetry-pill font-telemetry-pill px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/30 uppercase">Enterprise Scope 3 Ledger</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">• ISO 14044 Verified</span>
+</div>
+<h1 class="text-headline-xl-mobile md:text-headline-xl font-headline-xl text-on-surface tracking-tight">Circular Operations Dashboard</h1>
+</div>
+<!-- Micro Action Banner -->
+<div class="flex items-center gap-3 bg-surface-container px-4 py-2 rounded-xl border border-primary/30 shadow-[0_0_20px_rgba(78,222,163,0.1)]">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="sync" style="font-variation-settings: 'FILL' 1;">sync</span>
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm text-on-surface font-semibold">Circular Protocol Status</span>
+<span class="text-body-sm font-body-sm text-primary">Active EV Routing &amp; Tier-1 NGO Redirection Enabled</span>
+</div>
+<span class="w-2.5 h-2.5 rounded-full bg-primary ml-1 shadow-[0_0_8px_#4edea3]"></span>
+</div>
+</div>
+<!-- 3 Glassmorphic Metric Telemetry Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<!-- Card 1: Circularity Index -->
+<div class="glass-panel laser-border-top rounded-xl p-6 relative overflow-hidden group hover:border-primary/50 transition-all duration-300">
+<div class="absolute -right-10 -bottom-10 w-32 h-32 rounded-full bg-primary/5 blur-2xl group-hover:bg-primary/10 transition-all"></div>
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-md font-label-md text-on-surface-variant flex items-center gap-1.5">
+                  Circularity Index
+                  <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer" data-icon="info">info</span>
+</span>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="text-headline-xl font-headline-xl text-on-surface tracking-tight font-extrabold">91.5%</span>
+<span class="text-telemetry-pill font-telemetry-pill text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span>
+                    +4.2% Q3
+                  </span>
+</div>
+</div>
+<!-- Circular Progress SVG Ring -->
+<div class="relative w-14 h-14 flex items-center justify-center">
+<svg class="w-14 h-14 transform -rotate-90" viewbox="0 0 48 48">
+<circle cx="24" cy="24" fill="none" r="20" stroke="rgba(51, 65, 85, 0.4)" stroke-width="3.5"></circle>
+<circle class="shadow-[0_0_10px_#4edea3]" cx="24" cy="24" fill="none" r="20" stroke="#4edea3" stroke-dasharray="125.6" stroke-dashoffset="10.6" stroke-linecap="round" stroke-width="3.5"></circle>
+</svg>
+<span class="material-symbols-outlined absolute text-primary text-lg" data-icon="recycling">recycling</span>
+</div>
+</div>
+<!-- Fiber Breakdown Bar -->
+<div class="mt-5 space-y-1.5">
+<div class="flex justify-between text-body-sm font-body-sm text-on-surface-variant">
+<span>Direct Fiber Reuse Target</span>
+<span class="text-on-surface font-semibold">95.0% Goal</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden flex">
+<div class="h-full bg-primary rounded-full" style="width: 91.5%;"></div>
+<div class="h-full bg-surface-container-highest" style="width: 8.5%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 2: CO2 Avoided -->
+<div class="glass-panel laser-border-top rounded-xl p-6 relative overflow-hidden group hover:border-tertiary/50 transition-all duration-300">
+<div class="absolute -right-10 -bottom-10 w-32 h-32 rounded-full bg-tertiary/5 blur-2xl group-hover:bg-tertiary/10 transition-all"></div>
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-md font-label-md text-on-surface-variant flex items-center gap-1.5">
+                  CO2 Emissions Avoided
+                  <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer" data-icon="co2">co2</span>
+</span>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="text-headline-xl font-headline-xl text-on-surface tracking-tight font-extrabold">14,280</span>
+<span class="text-label-md font-label-md text-on-surface-variant">kg</span>
+<span class="text-telemetry-pill font-telemetry-pill text-tertiary bg-tertiary/10 border border-tertiary/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="forest">forest</span>
+                    1,280 trees
+                  </span>
+</div>
+</div>
+<div class="w-12 h-12 rounded-xl bg-tertiary/10 border border-tertiary/30 flex items-center justify-center text-tertiary shadow-[0_0_12px_rgba(107,216,203,0.2)]">
+<span class="material-symbols-outlined text-2xl" data-icon="cloud_off">cloud_off</span>
+</div>
+</div>
+<!-- Equivalent Metric Pill Grid -->
+<div class="mt-5 grid grid-cols-2 gap-2 text-body-sm font-body-sm">
+<div class="bg-surface-container-low px-2.5 py-1 rounded border border-outline-variant/20 flex items-center justify-between">
+<span class="text-on-surface-variant">EV Miles Equivalent</span>
+<span class="text-primary font-mono text-xs">35,420 mi</span>
+</div>
+<div class="bg-surface-container-low px-2.5 py-1 rounded border border-outline-variant/20 flex items-center justify-between">
+<span class="text-on-surface-variant">Landfill Diverted</span>
+<span class="text-tertiary font-mono text-xs">8,410 kg</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Water Conserved -->
+<div class="glass-panel laser-border-top rounded-xl p-6 relative overflow-hidden group hover:border-secondary-container/50 transition-all duration-300">
+<div class="absolute -right-10 -bottom-10 w-32 h-32 rounded-full bg-secondary-container/5 blur-2xl group-hover:bg-secondary-container/10 transition-all"></div>
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-md font-label-md text-on-surface-variant flex items-center gap-1.5">
+                  Industrial Water Conserved
+                  <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer" data-icon="water_drop">water_drop</span>
+</span>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="text-headline-xl font-headline-xl text-on-surface tracking-tight font-extrabold">42,900</span>
+<span class="text-label-md font-label-md text-on-surface-variant">Liters</span>
+<span class="text-telemetry-pill font-telemetry-pill text-secondary bg-secondary/10 border border-secondary/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="waves">waves</span>
+                    Denim Offset
+                  </span>
+</div>
+</div>
+<div class="w-12 h-12 rounded-xl bg-secondary/10 border border-secondary/30 flex items-center justify-center text-secondary shadow-[0_0_12px_rgba(69,223,164,0.2)]">
+<span class="material-symbols-outlined text-2xl" data-icon="water">water</span>
+</div>
+</div>
+<!-- Water Gauge Progress -->
+<div class="mt-5 space-y-1.5">
+<div class="flex justify-between text-body-sm font-body-sm text-on-surface-variant">
+<span>Municipal Denim Dye Offset</span>
+<span class="text-secondary font-semibold">18.6x Avg Household / Year</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-secondary to-tertiary rounded-full" style="width: 78%;"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ================= SECTION 2: DUAL OPERATIONS INTERACTIVE SECTION ================= -->
+<section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+<!-- Column A: Interactive Live Logistics Radar & Map View (7 Cols on desktop) -->
+<div class="xl:col-span-7 glass-panel laser-border-top rounded-xl p-6 flex flex-col justify-between relative overflow-hidden" id="radar">
+<!-- Radar Header & Live Filter Buttons -->
+<div>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-outline-variant/30">
+<div class="flex items-center gap-2.5">
+<div class="p-1.5 rounded-lg bg-surface-container border border-primary/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="radar">radar</span>
+</div>
+<div>
+<h2 class="text-headline-md font-headline-md text-on-surface">Live Logistics Dispatch Radar</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Tri-State EV Collection Fleet &amp; Tier-1 NGO Sanctuary Hubs</p>
+</div>
+</div>
+<!-- Filter Pills -->
+<div class="flex items-center gap-1.5 bg-surface-container-lowest p-1 rounded-lg border border-outline-variant/40">
+<button class="px-2.5 py-1 rounded text-label-sm font-label-sm bg-primary/20 text-primary border border-primary/30">All Fleet (12)</button>
+<button class="px-2.5 py-1 rounded text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface transition-colors">EV Only (8)</button>
+<button class="px-2.5 py-1 rounded text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface transition-colors">Hubs (4)</button>
+</div>
+</div>
+<!-- Stylized Dark Vector Radar Grid Viewport -->
+<div class="relative w-full h-80 sm:h-96 my-5 rounded-xl bg-surface-container-lowest border border-outline-variant/40 overflow-hidden flex items-center justify-center">
+<!-- Subtle Grid Lines -->
+<div class="absolute inset-0 opacity-15" style="background-image: linear-gradient(to right, #3c4a42 1px, transparent 1px), linear-gradient(to bottom, #3c4a42 1px, transparent 1px); background-size: 32px 32px;"></div>
+<!-- Concentric Radar Range Rings -->
+<div class="absolute w-72 h-72 rounded-full border border-primary/20 pointer-events-none"></div>
+<div class="absolute w-52 h-52 rounded-full border border-primary/25 pointer-events-none"></div>
+<div class="absolute w-32 h-32 rounded-full border border-primary/30 pointer-events-none"></div>
+<div class="absolute w-12 h-12 rounded-full border border-primary/40 pointer-events-none"></div>
+<!-- Crosshairs -->
+<div class="absolute inset-x-0 top-1/2 h-px bg-primary/20 pointer-events-none"></div>
+<div class="absolute inset-y-0 left-1/2 w-px bg-primary/20 pointer-events-none"></div>
+<!-- Rotating Radar Sweep Cone -->
+<div class="absolute w-72 h-72 rounded-full pointer-events-none animate-radar" style="background: conic-gradient(from 0deg at 50% 50%, rgba(78, 222, 163, 0.28) 0deg, transparent 65deg);"></div>
+<!-- Center Headquarters Hub Beacon -->
+<div class="relative z-10 flex flex-col items-center">
+<span class="relative flex h-4 w-4">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-4 w-4 bg-primary-container border-2 border-surface-container-lowest"></span>
+</span>
+<span class="text-telemetry-pill font-telemetry-pill text-primary mt-1 bg-surface-container-low/90 px-1.5 py-0.5 rounded border border-primary/30">HQ SORTING CENTER</span>
+</div>
+<!-- Radar Fleet Markers with Live Labels -->
+<!-- EV-Unit 04 -->
+<div class="absolute top-16 left-20 z-20 group cursor-pointer">
+<div class="flex items-center gap-1.5 bg-surface-container-high/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-primary/40 shadow-lg hover:border-primary transition-all">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<div>
+<div class="text-label-sm font-label-sm text-on-surface font-semibold flex items-center gap-1">
+                      EV-Unit 04
+                      <span class="text-telemetry-pill font-telemetry-pill text-primary bg-primary/10 px-1 rounded">Greenpoint</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant text-[10px]">4 pickups • ETA 12 min</div>
+</div>
+</div>
+</div>
+<!-- EV-Unit 09 -->
+<div class="absolute bottom-16 right-16 z-20 group cursor-pointer">
+<div class="flex items-center gap-1.5 bg-surface-container-high/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-primary/40 shadow-lg hover:border-primary transition-all">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<div>
+<div class="text-label-sm font-label-sm text-on-surface font-semibold flex items-center gap-1">
+                      EV-Unit 09
+                      <span class="text-telemetry-pill font-telemetry-pill text-primary bg-primary/10 px-1 rounded">Williamsburg</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant text-[10px]">7 pickups • ETA 28 min</div>
+</div>
+</div>
+</div>
+<!-- NGO Shelter Hub 1 -->
+<div class="absolute top-20 right-28 z-20 group cursor-pointer">
+<div class="flex items-center gap-1.5 bg-surface-container-high/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-tertiary/50 shadow-lg">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="night_shelter">night_shelter</span>
+<div>
+<div class="text-label-sm font-label-sm text-on-surface font-semibold">Hope Haven Hub</div>
+<div class="text-body-sm font-body-sm text-tertiary text-[10px]">Capacity: 88% • Intake Ready</div>
+</div>
+</div>
+</div>
+<!-- NGO Shelter Hub 2 -->
+<div class="absolute bottom-20 left-28 z-20 group cursor-pointer">
+<div class="flex items-center gap-1.5 bg-surface-container-high/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-secondary/50 shadow-lg">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="volunteer_activism">volunteer_activism</span>
+<div>
+<div class="text-label-sm font-label-sm text-on-surface font-semibold">Metro Care Ward</div>
+<div class="text-body-sm font-body-sm text-secondary text-[10px]">Priority Allocations: 24 units</div>
+</div>
+</div>
+</div>
+<!-- Coordinate Overlay Pill -->
+<div class="absolute bottom-3 left-3 bg-surface-container-lowest/80 px-2 py-1 rounded border border-outline-variant/30 text-telemetry-pill font-telemetry-pill text-on-surface-variant flex items-center gap-2">
+<span>RADAR GEO: 40.7128° N, 74.0060° W</span>
+<span class="text-primary font-mono">SWEEP: 5.0 GHz</span>
+</div>
+</div>
+</div>
+<!-- Bottom Route Telemetry Status Strip -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-outline-variant/30">
+<div class="bg-surface-container-low p-2.5 rounded-lg border border-outline-variant/20 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="electric_car">electric_car</span>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface font-semibold">Doorstep Pickups Today</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-mono">48 scheduled • 34 fulfilled</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded-lg border border-outline-variant/20 flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary text-xl" data-icon="local_shipping">local_shipping</span>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface font-semibold">Active NGO Drop-offs</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-mono">112 units routed in transit</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded-lg border border-outline-variant/20 flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-xl" data-icon="speed">speed</span>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface font-semibold">Dispatch Latency</p>
+<p class="text-body-sm font-body-sm text-primary font-mono">4.2 min avg allocation</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Column B: AI Garment Defect & Quality Assessment HUD (5 Cols on desktop) -->
+<div class="xl:col-span-5 glass-panel laser-border-top rounded-xl p-6 flex flex-col justify-between relative overflow-hidden" id="diagnostics">
+<!-- Header -->
+<div class="flex items-center justify-between pb-4 border-b border-outline-variant/30">
+<div class="flex items-center gap-2.5">
+<div class="p-1.5 rounded-lg bg-surface-container border border-primary/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="document_scanner">document_scanner</span>
+</div>
+<div>
+<h2 class="text-headline-md font-headline-md text-on-surface">AI Garment Diagnostics HUD</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Computer Vision Defect &amp; Spectrometry Scan</p>
+</div>
+</div>
+<span class="text-telemetry-pill font-telemetry-pill px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/30 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+              SENSOR LIVE
+            </span>
+</div>
+<!-- Camera Viewfinder HUD Simulation -->
+<div class="relative w-full h-56 my-4 rounded-xl bg-surface-container-lowest border border-outline-variant/40 overflow-hidden group">
+<!-- Real Garment Image in Viewfinder -->
+<img class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" data-alt="High tech industrial garment intake camera feed displaying a black technical Patagonia Nano Puff jacket laid flat on dark matte inspection table, laser crosshairs, cyan holographic edge highlights, crisp fiber weave macro texture with computer vision scanning telemetry overlays in vivid emerald." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA21fGsgdnYQU_DZadgyFWGrtNIayV4Xn78D7Z3Lz28Frpe0nQUpCTXG5_zw2h6f7MGgqNTcmzofXqWnf8A0MmcAyGL8FMRVhSL7QAzZV5CX0mJoSH_rTgB8Ue9RIi_L_y6EbSdcttVQCI8qgwoc8GgYnZeEOgtUZWeRH6lidWYgEO4ZZUpWtNfkrcD3Jks6XuEpI4MG_HnYSvrBTAZAs92qTzmA4TwrSttbJMa9vr_emv643Edzy-UbFmEeQgyq_gUFSYpbKN7fz_u"/>
+<!-- High-tech Viewfinder Optical Brackets -->
+<div class="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-primary pointer-events-none"></div>
+<div class="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-primary pointer-events-none"></div>
+<div class="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-primary pointer-events-none"></div>
+<div class="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-primary pointer-events-none"></div>
+<!-- Animated Laser Scan Line -->
+<div class="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-laser shadow-[0_0_12px_#4edea3] pointer-events-none"></div>
+<!-- Optical Center Reticle -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-16 h-16 rounded-full border border-dashed border-primary/40 flex items-center justify-center">
+<div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#4edea3]"></div>
+</div>
+</div>
+<!-- Detection Pill Overlay on Image -->
+<div class="absolute bottom-3 left-3 right-3 flex items-center justify-between bg-surface-container-low/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-outline-variant/40">
+<span class="text-label-sm font-label-sm text-on-surface font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                Patagonia Nano Puff Jacket
+              </span>
+<span class="text-telemetry-pill font-telemetry-pill text-primary font-mono">100% Recycled Ripstop Poly</span>
+</div>
+</div>
+<!-- Real-Time CV Detection Chips -->
+<div class="space-y-2 mb-4">
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-surface-container-low p-2 rounded-lg border border-outline-variant/30 flex flex-col">
+<span class="text-body-sm font-body-sm text-on-surface-variant text-[11px]">Hardware Integrity</span>
+<span class="text-label-sm font-label-sm text-primary font-bold flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-xs" data-icon="lock_open">lock_open</span>
+                  Zipper: 98%
+                </span>
+</div>
+<div class="bg-surface-container-low p-2 rounded-lg border border-outline-variant/30 flex flex-col">
+<span class="text-body-sm font-body-sm text-on-surface-variant text-[11px]">Seam Friction</span>
+<span class="text-label-sm font-label-sm text-secondary font-bold flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-xs" data-icon="straighten">straighten</span>
+                  Wear: 2% (Low)
+                </span>
+</div>
+<div class="bg-surface-container-low p-2 rounded-lg border border-outline-variant/30 flex flex-col">
+<span class="text-body-sm font-body-sm text-on-surface-variant text-[11px]">Structural Restor.</span>
+<span class="text-label-sm font-label-sm text-tertiary font-bold flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-xs" data-icon="healing">healing</span>
+                  Micro-Stitch OK
+                </span>
+</div>
+</div>
+<!-- Condition Grade Selector & Highlight -->
+<div class="bg-surface-container p-3 rounded-xl border border-primary/30 flex items-center justify-between">
+<div>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-[11px]">Algorithm Certified Condition</p>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-label-md font-label-md text-primary font-extrabold tracking-wide">GRADE A+ / MINT CIRCULATION</span>
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_#4edea3]"></span>
+</div>
+</div>
+<!-- Grade Selector Pills -->
+<div class="flex items-center gap-1">
+<button class="px-2 py-1 rounded text-telemetry-pill font-telemetry-pill bg-primary text-on-primary font-bold">GRADE A</button>
+<button class="px-2 py-1 rounded text-telemetry-pill font-telemetry-pill bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors">GRADE B</button>
+<button class="px-2 py-1 rounded text-telemetry-pill font-telemetry-pill bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors">GRADE C</button>
+</div>
+</div>
+</div>
+<!-- Bottom Action Buttons -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-outline-variant/30">
+<button class="bg-primary hover:brightness-110 active:scale-[0.98] transition-all text-on-primary font-label-md text-label-md py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow-[0_0_16px_rgba(78,222,163,0.3)]">
+<span class="material-symbols-outlined text-lg" data-icon="token">token</span>
+<span>Mint Digital Passport</span>
+</button>
+<button class="bg-surface-container-high hover:bg-surface-container-highest active:scale-[0.98] transition-all text-on-surface font-label-md text-label-md py-2.5 px-3 rounded-lg border border-outline-variant/40 flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-lg text-primary" data-icon="local_mall">local_mall</span>
+<span>Approve for NGO Allocation</span>
+</button>
+</div>
+</div>
+</section>
+<!-- ================= SECTION 3: ZERO-COST BENEFICIARY CLOTHING BOUTIQUE & CATALOG ================= -->
+<section class="space-y-5" id="boutique">
+<!-- Header with Search, Filter Pills & Stock Status -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-outline-variant/30">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-surface">Zero-Cost Beneficiary Clothing Boutique</h2>
+<span class="text-telemetry-pill font-telemetry-pill px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/30 uppercase">Charity Partner Access</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">Verified high-tier garments allocated at 0 Credits for accredited social shelters and low-income community wardrobes.</p>
+</div>
+<!-- Stock Status Badge -->
+<div class="flex items-center gap-3">
+<div class="bg-surface-container px-3.5 py-1.5 rounded-lg border border-outline-variant/40 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-base" data-icon="inventory_2">inventory_2</span>
+<span class="text-label-sm font-label-sm text-on-surface">
+<span class="text-primary font-bold">142 Items</span> Reserved for Community Orgs
+              </span>
+</div>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="flex flex-wrap items-center justify-between gap-3">
+<div class="flex flex-wrap items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg text-label-sm font-label-sm bg-primary text-on-primary font-semibold shadow-[0_0_12px_rgba(78,222,163,0.25)]">All Seasons</button>
+<button class="px-3 py-1.5 rounded-lg text-label-sm font-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant/30 transition-colors">Winter Outerwear (48)</button>
+<button class="px-3 py-1.5 rounded-lg text-label-sm font-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant/30 transition-colors">Workwear &amp; Suiting (32)</button>
+<button class="px-3 py-1.5 rounded-lg text-label-sm font-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant/30 transition-colors">Children &amp; Youth (62)</button>
+</div>
+<!-- Search filter in catalog -->
+<div class="flex items-center gap-2 bg-surface-container px-3 py-1 rounded-lg border border-outline-variant/40 w-full sm:w-64">
+<span class="material-symbols-outlined text-on-surface-variant text-base" data-icon="filter_list">filter_list</span>
+<input class="bg-transparent text-label-sm font-label-sm text-on-surface placeholder-on-surface-variant/60 focus:outline-none w-full border-none p-0 focus:ring-0" placeholder="Filter by brand or size..." type="text"/>
+</div>
+</div>
+<!-- 3 Luxury Garment Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Card 1: Everlane Knit -->
+<div class="glass-panel laser-border-top rounded-xl overflow-hidden group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
+<div class="relative h-64 overflow-hidden bg-surface-container-low">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Exquisite studio fashion photograph of an Everlane Heavyweight Cashmere Knit in warm charcoal heather, soft directional lighting illuminating clean ribbed knit texture, styled on minimalist dark basalt surface with subtle emerald reflections." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCJGfTD3dFPOxBcVDvPFEcGoIJwOuLk-K8XoPetQw-3gKNieBTCwLQQsMJohGQR3yjXQTrOEkZ5oMS5ChClkOjfHyelMz1ps_vxikbl8X2hZVRpTslH9MOhsb4xFc_h5Ie9zkgd9Aa-gUVRrT--tah2xKmcyKDbFG2XGoMrasTmOLfur2TZM3KV3ycoBUp4LbgMxQ2mOs77yLjWT8Ppfu4J4BMEtLHG6f9Vb2pyRWTERvq9Li23tmdfUAHX3kKgYzJZOFeTerXrb2o"/>
+<!-- Floating Badges -->
+<div class="absolute top-3 left-3 flex flex-col gap-1.5">
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded bg-primary/20 backdrop-blur-md text-primary border border-primary/40 font-bold">GRADE A</span>
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-md text-on-surface border border-outline-variant/40">SIZE M</span>
+</div>
+<div class="absolute top-3 right-3">
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded-full bg-surface-container-high/90 backdrop-blur-md text-on-surface-variant border border-outline-variant/40">
+                  Fall / Winter
+                </span>
+</div>
+</div>
+<!-- Content -->
+<div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant mb-1">
+<span>Everlane Heritage</span>
+<span class="text-telemetry-pill font-telemetry-pill text-primary">DPP #EVR-9921</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-on-surface font-semibold">Heavyweight Cashmere Knit</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">100% Regenerative Cashmere. Professionally defuzzed, ozone sanitized, and thermal rested.</p>
+</div>
+<!-- Allocation & Pricing -->
+<div class="pt-3 border-t border-outline-variant/30 space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-telemetry-pill font-telemetry-pill text-on-surface-variant">BENEFICIARY COST</span>
+<p class="text-label-md font-label-md text-primary font-bold">0 Credits / Allocated</p>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant font-mono">Ret. Val: $228</span>
+</div>
+<button class="w-full bg-primary-container hover:brightness-110 active:scale-[0.98] transition-all text-on-primary-container font-label-md text-label-md py-2 rounded-lg flex items-center justify-center gap-2 shadow-[0_0_14px_rgba(16,185,129,0.2)]">
+<span class="material-symbols-outlined text-base" data-icon="touch_app">touch_app</span>
+<span>1-Click Tokenized Claim</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2: Arc'teryx Shell -->
+<div class="glass-panel laser-border-top rounded-xl overflow-hidden group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
+<div class="relative h-64 overflow-hidden bg-surface-container-low">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Technical outerwear editorial photograph of an Arc'teryx Beta LT GORE-TEX Shell in deep emerald forest teal, technical water beading on waterproof membrane, high key macro studio lighting on dark slate backdrop with precision aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrTMCGhAgNHjgHaFHxJBH2x8lzHBnO1s9VtxNLy0D4suCt49Ham80fQVhFnUzUJZIoDCRbLPr4quavtp1lZOygqdXOrLkzk9As3jG7DPtrC91oVBqcxgEBKr1C6Woo9xcbyxGDP6h9a_7df9XYmtLQcy-YFezOLB0CgfLsumBSUbllJAZ9ylPasF-MT50j0f8V9iwjp63w2nLDdnDowwb783Mx60yAygZE6f1YCz-KhttnFYt4spHMHMm0Fxv0sATvpX8gxEyd5ENi"/>
+<!-- Floating Badges -->
+<div class="absolute top-3 left-3 flex flex-col gap-1.5">
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded bg-primary/20 backdrop-blur-md text-primary border border-primary/40 font-bold">GRADE A+</span>
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-md text-on-surface border border-outline-variant/40">SIZE L</span>
+</div>
+<div class="absolute top-3 right-3">
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded-full bg-surface-container-high/90 backdrop-blur-md text-on-surface-variant border border-outline-variant/40">
+                  All-Weather
+                </span>
+</div>
+</div>
+<!-- Content -->
+<div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant mb-1">
+<span>Arc'teryx Veilance</span>
+<span class="text-telemetry-pill font-telemetry-pill text-primary">DPP #ARC-7104</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-on-surface font-semibold">Beta LT GORE-TEX Shell</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">DWR re-impregnated with non-fluorinated bio-wax. Fully taped seams verified under hydraulic test.</p>
+</div>
+<!-- Allocation & Pricing -->
+<div class="pt-3 border-t border-outline-variant/30 space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-telemetry-pill font-telemetry-pill text-on-surface-variant">BENEFICIARY COST</span>
+<p class="text-label-md font-label-md text-primary font-bold">0 Credits / Allocated</p>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant font-mono">Ret. Val: $450</span>
+</div>
+<button class="w-full bg-primary-container hover:brightness-110 active:scale-[0.98] transition-all text-on-primary-container font-label-md text-label-md py-2 rounded-lg flex items-center justify-center gap-2 shadow-[0_0_14px_rgba(16,185,129,0.2)]">
+<span class="material-symbols-outlined text-base" data-icon="touch_app">touch_app</span>
+<span>1-Click Tokenized Claim</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3: Selvedge Denim -->
+<div class="glass-panel laser-border-top rounded-xl overflow-hidden group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
+<div class="relative h-64 overflow-hidden bg-surface-container-low">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Refined catalog still life of tailored Japanese Organic Cotton Selvedge Denim jeans, folded neatly to reveal pristine red-line selvedge ID seam, crisp deep indigo botanical re-dyed wash on dark moody carbon surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9kyiI7i0SE-jShsU7ycvYxxfTUZDn0Mvp1E-7UvdrMU6DiC-FXdBcnQAubWw1RBg18bJuY7316MJCuw9a-_Txju06KtuC3dZcWG1MgtM-cUZUzjN59--KvaRnLI7U-RXxOX6I_yeInCdCr28Zjlj_cbjVI6rfuIWnu_uwCQFwYD1-xf95HEJK3svuSdROQiRLhYFN0vjlY_eXzQv0kc7h4HcitpphCNwKSrafAF87BKaAisYm8eUZdG2OqVc9waGoCD0E2BQ6Qla4"/>
+<!-- Floating Badges -->
+<div class="absolute top-3 left-3 flex flex-col gap-1.5">
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded bg-tertiary/20 backdrop-blur-md text-tertiary border border-tertiary/40 font-bold">GRADE B (Re-dyed)</span>
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-md text-on-surface border border-outline-variant/40">32x32</span>
+</div>
+<div class="absolute top-3 right-3">
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded-full bg-surface-container-high/90 backdrop-blur-md text-on-surface-variant border border-outline-variant/40">
+                  Spring / Core
+                </span>
+</div>
+</div>
+<!-- Content -->
+<div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant mb-1">
+<span>Nudie Atelier Circle</span>
+<span class="text-telemetry-pill font-telemetry-pill text-primary">DPP #NUD-3309</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-on-surface font-semibold">Organic Cotton Selvedge Denim</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">13.5oz organic cotton. Clean indigo dip refresh completed, zero water waste circular dye technology.</p>
+</div>
+<!-- Allocation & Pricing -->
+<div class="pt-3 border-t border-outline-variant/30 space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-telemetry-pill font-telemetry-pill text-on-surface-variant">BENEFICIARY COST</span>
+<p class="text-label-md font-label-md text-primary font-bold">0 Credits / Allocated</p>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant font-mono">Ret. Val: $210</span>
+</div>
+<button class="w-full bg-primary-container hover:brightness-110 active:scale-[0.98] transition-all text-on-primary-container font-label-md text-label-md py-2 rounded-lg flex items-center justify-center gap-2 shadow-[0_0_14px_rgba(16,185,129,0.2)]">
+<span class="material-symbols-outlined text-base" data-icon="touch_app">touch_app</span>
+<span>1-Click Tokenized Claim</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ================= SECTION 4: DIGITAL PRODUCT PASSPORT (DPP) VERIFICATION CARD & TIMELINE ================= -->
+<section class="glass-panel-elevated laser-border-top rounded-2xl p-6 lg:p-8 space-y-6" id="passports">
+<!-- Top Pass Passport Banner -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-outline-variant/30">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl bg-surface-container flex items-center justify-center border border-primary/40 shadow-[0_0_20px_rgba(78,222,163,0.2)]">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="qr_code_scanner">qr_code_scanner</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-surface">Digital Product Passport (DPP) Ledger</h2>
+<span class="text-telemetry-pill font-telemetry-pill px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/30">EU ESPR COMPLIANT</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Cryptographic traceability, life cycle assessment proofs, and custodial change records.</p>
+</div>
+</div>
+<!-- Hash Pill & Export -->
+<div class="flex items-center gap-3">
+<div class="bg-surface-container-lowest px-3 py-1.5 rounded-lg border border-outline-variant/40 flex items-center gap-2 font-mono text-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="tag">tag</span>
+<span>#DPP-ETH-8942-0X</span>
+<button class="hover:text-primary transition-colors" title="Copy Hash">
+<span class="material-symbols-outlined text-sm" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface px-3 py-1.5 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-base" data-icon="download">download</span>
+<span>Export PDF Certificate</span>
+</button>
+</div>
+</div>
+<!-- DPP Split View: QR / Cert Spec (Left) and Immutable Chronological Milestones (Right) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left: Scannable Security Certificate & QR Simulation (4 Cols) -->
+<div class="lg:col-span-4 bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col items-center text-center space-y-4">
+<!-- Simulated QR Visual -->
+<div class="p-3 bg-white rounded-xl shadow-lg relative group">
+<svg class="w-40 h-40 text-black" fill="currentColor" viewbox="0 0 100 100">
+<!-- QR Finder Patterns -->
+<rect height="30" width="30" x="0" y="0"></rect>
+<rect fill="white" height="22" width="22" x="4" y="4"></rect>
+<rect fill="black" height="14" width="14" x="8" y="8"></rect>
+<rect height="30" width="30" x="70" y="0"></rect>
+<rect fill="white" height="22" width="22" x="74" y="4"></rect>
+<rect fill="black" height="14" width="14" x="78" y="8"></rect>
+<rect height="30" width="30" x="0" y="70"></rect>
+<rect fill="white" height="22" width="22" x="4" y="74"></rect>
+<rect fill="black" height="14" width="14" x="8" y="78"></rect>
+<!-- Stylized Data Dots -->
+<rect height="6" width="6" x="36" y="8"></rect>
+<rect height="6" width="6" x="48" y="8"></rect>
+<rect height="6" width="6" x="36" y="20"></rect>
+<rect height="6" width="6" x="52" y="24"></rect>
+<rect height="6" width="6" x="8" y="38"></rect>
+<rect height="6" width="6" x="20" y="44"></rect>
+<rect fill="#10b981" height="12" width="12" x="38" y="38"></rect>
+<rect height="6" width="6" x="62" y="38"></rect>
+<rect height="6" width="6" x="74" y="46"></rect>
+<rect height="6" width="6" x="86" y="38"></rect>
+<rect height="6" width="6" x="38" y="60"></rect>
+<rect height="6" width="6" x="52" y="68"></rect>
+<rect height="6" width="6" x="68" y="72"></rect>
+<rect height="6" width="6" x="84" y="62"></rect>
+<rect height="6" width="6" x="44" y="84"></rect>
+<rect height="6" width="6" x="60" y="84"></rect>
+<rect height="6" width="6" x="80" y="80"></rect>
+</svg>
+<!-- Central Stamp -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<span class="w-8 h-8 rounded-full bg-surface-container-lowest border border-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-base" data-icon="all_inclusive">all_inclusive</span>
+</span>
+</div>
+</div>
+<div>
+<p class="text-label-md font-label-md text-on-surface font-semibold">Decentralized Identifier</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-mono text-[11px] mt-0.5">did:ion:EiD4892...ecothread-dpp</p>
+</div>
+<!-- Verification Metadata Chips -->
+<div class="w-full space-y-2 pt-2 border-t border-outline-variant/30 text-left text-body-sm font-body-sm">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span>Proof Status</span>
+<span class="text-primary font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  Valid On-Chain
+                </span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<span>GOTS Certificate</span>
+<span class="text-on-surface font-mono text-xs">#CU-849201</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<span>Circularity Score</span>
+<span class="text-primary font-mono text-xs">96.8 / 100</span>
+</div>
+</div>
+</div>
+<!-- Right: Immutable Chronological Timeline Milestones (8 Cols) -->
+<div class="lg:col-span-8 space-y-6">
+<h3 class="text-headline-md font-headline-md text-on-surface font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="timeline">timeline</span>
+              Garment Provenance &amp; Custody Chain
+            </h3>
+<!-- Timeline Vertical Stack -->
+<div class="relative pl-8 space-y-7 before:absolute before:left-3.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-outline-variant/40">
+<!-- Milestone 1: 2021 -->
+<div class="relative group">
+<span class="absolute -left-8 top-1 w-7 h-7 rounded-full bg-surface-container border border-outline-variant flex items-center justify-center text-on-surface-variant group-hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-xs" data-icon="factory">factory</span>
+</span>
+<div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 space-y-1">
+<div class="flex items-center justify-between">
+<span class="text-telemetry-pill font-telemetry-pill text-on-surface-variant font-mono">2021 • GENESIS EMISSION</span>
+<span class="text-telemetry-pill font-telemetry-pill text-primary bg-primary/10 px-2 py-0.5 rounded">GOTS LEVEL 1</span>
+</div>
+<h4 class="text-label-md font-label-md text-on-surface font-semibold">Initial Manufacture &amp; Raw Organic Fiber Certification</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Spun in Izmir, Turkey using 100% USDA Certified Organic Cotton. 3.2 kg CO2 eq cradle-to-gate footprint recorded.</p>
+</div>
+</div>
+<!-- Milestone 2: 2023 -->
+<div class="relative group">
+<span class="absolute -left-8 top-1 w-7 h-7 rounded-full bg-surface-container border border-outline-variant flex items-center justify-center text-on-surface-variant group-hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-xs" data-icon="dry_cleaning">dry_cleaning</span>
+</span>
+<div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 space-y-1">
+<div class="flex items-center justify-between">
+<span class="text-telemetry-pill font-telemetry-pill text-on-surface-variant font-mono">2023 • FIRST CUSTODY</span>
+<span class="text-telemetry-pill font-telemetry-pill text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded">WARDROBE LIFE</span>
+</div>
+<h4 class="text-label-md font-label-md text-on-surface font-semibold">First Life Wardrobe Lifecycle (Portland, OR)</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Purchased by original consumer partner. Worn an estimated 42 times across two winter seasons with zero harsh dry-cleaning.</p>
+</div>
+</div>
+<!-- Milestone 3: Yesterday -->
+<div class="relative group">
+<span class="absolute -left-8 top-1 w-7 h-7 rounded-full bg-surface-container border border-primary/60 flex items-center justify-center text-primary shadow-[0_0_8px_rgba(78,222,163,0.3)]">
+<span class="material-symbols-outlined text-xs" data-icon="electric_bolt">electric_bolt</span>
+</span>
+<div class="bg-surface-container-low p-4 rounded-xl border border-primary/30 space-y-1">
+<div class="flex items-center justify-between">
+<span class="text-telemetry-pill font-telemetry-pill text-primary font-mono">YESTERDAY 14:20 EST • ZERO-EMISSION INTAKE</span>
+<span class="text-telemetry-pill font-telemetry-pill text-primary bg-primary/10 px-2 py-0.5 rounded">EV-ROUTED</span>
+</div>
+<h4 class="text-label-md font-label-md text-on-surface font-semibold">Doorstep EV Intake &amp; Ultrasonic Sanitation</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Collected via EcoThread Electric Van #04 in Greenpoint. Passed medical-grade microbial ozone wash and optical sorting scanner.</p>
+</div>
+</div>
+<!-- Milestone 4: Today -->
+<div class="relative group">
+<span class="absolute -left-8 top-1 w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-[0_0_12px_#4edea3]">
+<span class="material-symbols-outlined text-xs font-bold" data-icon="verified">verified</span>
+</span>
+<div class="bg-surface-container p-4 rounded-xl border border-primary/50 space-y-1 shadow-[0_0_16px_rgba(78,222,163,0.15)]">
+<div class="flex items-center justify-between">
+<span class="text-telemetry-pill font-telemetry-pill text-primary font-mono">TODAY 09:15 EST • FINAL REDIRECTION</span>
+<span class="text-telemetry-pill font-telemetry-pill bg-primary text-on-primary px-2 py-0.5 rounded font-bold">DISPATCHED</span>
+</div>
+<h4 class="text-label-md font-label-md text-on-surface font-semibold">AI Quality Grade A Certified &amp; Zero-Cost Allocation to Downtown Sanctuary</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Item matched with Community Needs Ward (Winter Outerwear manifest). Transferred to Hope Haven Shelter via tokenized smart contract.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

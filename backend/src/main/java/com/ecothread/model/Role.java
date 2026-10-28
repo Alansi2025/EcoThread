@@ -4,5 +4,6 @@ public enum Role {
     ROLE_DONOR,
     ROLE_BENEFICIARY,
     ROLE_LOGISTICS,
-    ROLE_ADMIN
+    ROLE_ADMIN,
+    ROLE_NGO
 }

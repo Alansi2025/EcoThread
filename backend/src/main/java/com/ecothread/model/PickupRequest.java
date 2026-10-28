@@ -23,9 +23,29 @@ public class PickupRequest {
     @JsonIgnoreProperties({"passwordHash", "hibernateLazyInitializer", "handler"})
     private User driver;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "assigned_ngo_user_id")
+    @JsonIgnoreProperties({"passwordHash", "hibernateLazyInitializer", "handler"})
+    private User assignedNgoUser;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "assigned_ngo_partner_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private NgoPartner assignedNgo;
+
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "pickup_address_id", nullable = false)
     private Address pickupAddress;
+
+    // Donation details
+    private String title;
+    private String category;
+    private Integer quantity;
+    private String unit;
+    private String conditionDescription;
+    private String imageUrl;
+    private Integer qualityScore;
+    private String pickupOrDropoff = "PICKUP"; // "PICKUP" or "DROPOFF"
 
     @Column(nullable = false)
     private LocalDate scheduledDate;
@@ -41,10 +61,13 @@ public class PickupRequest {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PickupStatus status = PickupStatus.PENDING;
+    private PickupStatus status = PickupStatus.SUBMITTED;
 
     @Column(length = 1000)
     private String driverNotes;
+
+    @Column(length = 1000)
+    private String additionalInstructions;
 
     private Double estimatedWeightKg;
 
@@ -60,7 +83,7 @@ public class PickupRequest {
         this.timeSlot = timeSlot;
         this.bagCount = bagCount != null ? bagCount : 1;
         this.clothTypes = clothTypes;
-        this.status = PickupStatus.PENDING;
+        this.status = PickupStatus.SUBMITTED;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -88,12 +111,92 @@ public class PickupRequest {
         this.driver = driver;
     }
 
+    public User getAssignedNgoUser() {
+        return assignedNgoUser;
+    }
+
+    public void setAssignedNgoUser(User assignedNgoUser) {
+        this.assignedNgoUser = assignedNgoUser;
+    }
+
+    public NgoPartner getAssignedNgo() {
+        return assignedNgo;
+    }
+
+    public void setAssignedNgo(NgoPartner assignedNgo) {
+        this.assignedNgo = assignedNgo;
+    }
+
     public Address getPickupAddress() {
         return pickupAddress;
     }
 
     public void setPickupAddress(Address pickupAddress) {
         this.pickupAddress = pickupAddress;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getConditionDescription() {
+        return conditionDescription;
+    }
+
+    public void setConditionDescription(String conditionDescription) {
+        this.conditionDescription = conditionDescription;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Integer getQualityScore() {
+        return qualityScore;
+    }
+
+    public void setQualityScore(Integer qualityScore) {
+        this.qualityScore = qualityScore;
+    }
+
+    public String getPickupOrDropoff() {
+        return pickupOrDropoff;
+    }
+
+    public void setPickupOrDropoff(String pickupOrDropoff) {
+        this.pickupOrDropoff = pickupOrDropoff;
     }
 
     public LocalDate getScheduledDate() {
@@ -142,6 +245,14 @@ public class PickupRequest {
 
     public void setDriverNotes(String driverNotes) {
         this.driverNotes = driverNotes;
+    }
+
+    public String getAdditionalInstructions() {
+        return additionalInstructions;
+    }
+
+    public void setAdditionalInstructions(String additionalInstructions) {
+        this.additionalInstructions = additionalInstructions;
     }
 
     public Double getEstimatedWeightKg() {

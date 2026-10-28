@@ -1,16 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Sprout, ShieldCheck, HeartHandshake, Leaf, Globe, ArrowUp, ExternalLink, Code2 } from 'lucide-react';
 
-export const Footer = ({ onTabChange, onOpenVerify }) => {
+export const Footer = ({ onOpenVerify }) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNav = (tab) => {
-    if (onTabChange) {
-      onTabChange(tab);
-      scrollToTop();
-    }
   };
 
   return (
@@ -29,7 +23,7 @@ export const Footer = ({ onTabChange, onOpenVerify }) => {
               <span className="text-base font-bold text-white font-['Outfit']">EcoThread</span>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed">
-              Transforming pre-loved garments into dignity and climate resilience. Doorstep collection, scientific QC grading, and zero-cost credit redistribution.
+              Transforming pre-loved garments into dignity and climate resilience. Doorstep collection, scientific AI quality inspection, and zero-landfill community redistribution.
             </p>
             <div className="text-[11px] text-slate-500">
               © 2026 EcoThread Foundation. Registered Section 8 Non-Profit.
@@ -44,40 +38,44 @@ export const Footer = ({ onTabChange, onOpenVerify }) => {
             </h4>
             <ul className="space-y-1.5 text-xs">
               <li>
-                <button
-                  onClick={() => handleNav('donor')}
+                <Link
+                  to="/donor/dashboard"
+                  onClick={scrollToTop}
                   className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 py-0.5 text-left"
                 >
                   <span className="text-emerald-500">🌿</span>
-                  <span>Donor Portal & Doorstep Pickup</span>
-                </button>
+                  <span>Donor Portal & Doorstep Collection</span>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => handleNav('beneficiary')}
-                  className="hover:text-amber-400 transition-colors flex items-center gap-1.5 py-0.5 text-left"
+                <Link
+                  to="/ngo/dashboard"
+                  onClick={scrollToTop}
+                  className="hover:text-indigo-400 transition-colors flex items-center gap-1.5 py-0.5 text-left"
                 >
-                  <span className="text-amber-500">🛍️</span>
-                  <span>Beneficiary Seasonal Store</span>
-                </button>
+                  <span className="text-indigo-500">🏢</span>
+                  <span>NGO Partner Operations Hub</span>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => handleNav('logistics')}
+                <Link
+                  to="/ngo/browse"
+                  onClick={scrollToTop}
                   className="hover:text-blue-400 transition-colors flex items-center gap-1.5 py-0.5 text-left"
                 >
-                  <span className="text-blue-500">🚚</span>
-                  <span>Fleet Driver Route Manifest</span>
-                </button>
+                  <span className="text-blue-500">📦</span>
+                  <span>Browse Available Donations</span>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => handleNav('admin')}
-                  className="hover:text-purple-400 transition-colors flex items-center gap-1.5 py-0.5 text-left"
+                <Link
+                  to="/about"
+                  onClick={scrollToTop}
+                  className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 py-0.5 text-left"
                 >
-                  <span className="text-purple-500">⚙️</span>
-                  <span>Warehouse QC & Quota Admin</span>
-                </button>
+                  <span className="text-teal-500">ℹ️</span>
+                  <span>About Circular Campus Mission</span>
+                </Link>
               </li>
             </ul>
           </div>
@@ -115,7 +113,7 @@ export const Footer = ({ onTabChange, onOpenVerify }) => {
               <div>Backend: <span className="text-slate-200">Spring Boot 3.3.5 (Java 21)</span></div>
               <div>Security: <span className="text-slate-200">Stateless JWT + BCrypt</span></div>
               <div>Database: <span className="text-slate-200">H2 In-Memory Engine</span></div>
-              <div>Tax Invoicing: <span className="text-slate-200">OpenPDF SHA-256 Engine</span></div>
+              <div>AI Vision: <span className="text-slate-200">Google Cloud Vision Engine</span></div>
             </div>
 
             <div className="flex flex-col gap-1.5 pt-1">

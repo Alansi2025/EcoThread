@@ -36,6 +36,18 @@ public class User {
     @Column(nullable = false)
     private Integer credits = 0;
 
+    // Organization & Donor Profile Details
+    private String organizationName;
+    private String contactPerson;
+    private String serviceArea;
+    private String registrationNumber; // e.g. 80G/12A or NGO Darpan ID
+    
+    @Column(length = 2000)
+    private String bioOrMission;
+    
+    private Boolean isVerified = false;
+    private String address;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -105,6 +117,62 @@ public class User {
 
     public void setCredits(Integer credits) {
         this.credits = credits;
+    }
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
+    }
+
+    public String getContactPerson() {
+        return contactPerson;
+    }
+
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
+    }
+
+    public String getServiceArea() {
+        return serviceArea;
+    }
+
+    public void setServiceArea(String serviceArea) {
+        this.serviceArea = serviceArea;
+    }
+
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
+    }
+
+    public String getBioOrMission() {
+        return bioOrMission;
+    }
+
+    public void setBioOrMission(String bioOrMission) {
+        this.bioOrMission = bioOrMission;
+    }
+
+    public Boolean getIsVerified() {
+        return isVerified;
+    }
+
+    public void setIsVerified(Boolean isVerified) {
+        this.isVerified = isVerified;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -20,8 +20,10 @@ api.interceptors.request.use((config) => {
 // Centralized API calls
 export const authApi = {
   login: (email, password) => api.post('/auth/login', { email, password }),
+  googleLogin: (data) => api.post('/auth/google', data),
   register: (data) => api.post('/auth/register', data),
   getMe: () => api.get('/auth/me'),
+  updateProfile: (data) => api.put('/auth/profile', data),
 };
 
 export const pickupApi = {
@@ -31,11 +33,22 @@ export const pickupApi = {
   updateStatus: (id, data) => api.patch(`/pickups/${id}/status`, data),
   cancelPickup: (id, reason) => api.patch(`/pickups/${id}/cancel`, { reason }),
   reschedulePickup: (id, data) => api.patch(`/pickups/${id}/reschedule`, data),
+  
+  // New NGO donation workflow
+  getAvailableDonations: () => api.get('/pickups/available'),
+  getAcceptedDonations: () => api.get('/pickups/accepted'),
+  acceptDonation: (id, notes) => api.post(`/pickups/${id}/accept`, { notes }),
+  declineDonation: (id, reason) => api.post(`/pickups/${id}/decline`, { reason }),
+  
+  // Real stats
+  getDonorStats: () => api.get('/pickups/stats/donor'),
+  getNgoStats: () => api.get('/pickups/stats/ngo'),
 };
 
 export const catalogApi = {
   getCatalog: (params) => api.get('/catalog', { params }),
   getItemDetails: (id) => api.get(`/catalog/${id}`),
+  submitDonorItem: (data) => api.post('/catalog/submit-donor-item', data),
 };
 
 export const adminApi = {
@@ -74,7 +87,7 @@ export const invoiceApi = {
   verifyCertificate: (invoiceNumber) => api.get(`/invoices/verify/${encodeURIComponent(invoiceNumber)}`),
   getPdfDownloadUrl: (id) => `/api/invoices/download/${id}`,
   downloadPdf: async (id, filename = '80G_Receipt.pdf') => {
-    const response = await api.get(`/invoices/download/${id}`, {
+    const response = await api.get(`/api/invoices/download/${id}`, {
       responseType: 'blob',
     });
     const blob = new Blob([response.data], { type: 'application/pdf' });

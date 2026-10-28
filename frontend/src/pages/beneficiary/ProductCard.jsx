@@ -69,6 +69,16 @@ export const ProductCard = ({ item, onQuickView }) => {
             {item.title}
           </h3>
 
+          {/* AI Quality & Inspection Badge */}
+          {item.qcNotes && (
+            <div className="mb-2 flex items-center gap-1.5 flex-wrap">
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
+                <span>{item.qcNotes}</span>
+              </span>
+            </div>
+          )}
+
           <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed mb-3">
             {item.description || 'Sanitized and inspected garment ready for immediate wearing.'}
           </p>

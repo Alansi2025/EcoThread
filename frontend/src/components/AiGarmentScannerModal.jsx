@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   X, Camera, Upload, Sparkles, CheckCircle2, AlertTriangle, 
   RotateCcw, ShieldCheck, QrCode, ArrowRight, Zap, RefreshCw,
-  Scissors, HeartHandshake, Layers, HelpCircle, FileCheck
+  Scissors, HeartHandshake, Layers, HelpCircle, FileCheck, Send, Check
 } from 'lucide-react';
-import { aiApi } from '../services/api';
+import { aiApi, catalogApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
 
 const PRESET_SAMPLE_GARMENTS = [
@@ -60,9 +60,14 @@ const PRESET_SAMPLE_GARMENTS = [
 
 export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenNgoLocator }) => {
   const { addToast } = useToast();
+  const fileInputRef = useRef(null);
+  const [customImage, setCustomImage] = useState(null);
+  const [customTitle, setCustomTitle] = useState("");
   const [selectedSample, setSelectedSample] = useState(PRESET_SAMPLE_GARMENTS[0]);
   const [isScanning, setIsScanning] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState(null);
+  const [isSubmittingToNgo, setIsSubmittingToNgo] = useState(false);
+  const [isSubmittedToNgo, setIsSubmittedToNgo] = useState(false);
 
   // Manual defect toggles
   const [hasTears, setHasTears] = useState(false);
@@ -72,7 +77,34 @@ export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenN
   const [category, setCategory] = useState("Outerwear");
   const [fabric, setFabric] = useState("100% Cotton Denim");
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCustomImage(reader.result);
+        setSelectedSample({
+          name: customTitle || file.name.replace(/\.[^/.]+$/, ""),
+          category: category,
+          fabric: fabric,
+          image: reader.result,
+          hasTears: false,
+          hasStains: false,
+          hasHardwareIssue: false,
+          hasFading: false,
+          sanitized: true,
+          wearDuration: "6-12 Months"
+        });
+        setAssessmentResult(null);
+        setIsSubmittedToNgo(false);
+        addToast("Custom garment image loaded! Ready for AI Scan.", "info");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSelectSample = (sample) => {
+    setCustomImage(null);
     setSelectedSample(sample);
     setCategory(sample.category);
     setFabric(sample.fabric);
@@ -81,18 +113,17 @@ export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenN
     setHasMissingButtons(sample.hasHardwareIssue);
     setHasFading(sample.hasFading);
     setAssessmentResult(null);
+    setIsSubmittedToNgo(false);
   };
 
   const runAiAssessment = async () => {
     setIsScanning(true);
     setAssessmentResult(null);
+    setIsSubmittedToNgo(false);
 
     try {
-      // Simulate real-time computer vision latency
-      await new Promise(r => setTimeout(r, 1200));
-
       const payload = {
-        title: selectedSample.name,
+        title: customTitle || selectedSample.name,
         category: category,
         fabricComposition: fabric,
         hasTears: hasTears,
@@ -100,7 +131,7 @@ export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenN
         hasMissingButtonsOrZippers: hasMissingButtons,
         hasSevereFading: hasFading,
         isSanitized: true,
-        photoUrl: selectedSample.image,
+        photoUrl: customImage || selectedSample.image,
         campusHostelLocation: "Campus SAC Hub"
       };
 
@@ -112,6 +143,33 @@ export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenN
       addToast('Error running AI Assessment', 'error');
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  const handleSubmitFinalToNgo = async () => {
+    if (!assessmentResult) return;
+    setIsSubmittingToNgo(true);
+    try {
+      const payload = {
+        title: customTitle || selectedSample.name,
+        description: `Verified condition: ${assessmentResult.conditionGrade} (${assessmentResult.qualityScore || 85}/100 Quality). ${assessmentResult.decisionRationale}`,
+        category: category,
+        targetGender: "Unisex",
+        size: "Free Size",
+        season: "All Season",
+        imageUrl: customImage || selectedSample.image,
+        qualityScore: assessmentResult.qualityScore || 85,
+        qcNotes: `Decision: ${assessmentResult.actionVerdict || 'SELL_DONATE'}. Score: ${assessmentResult.qualityScore || 85}/100.`
+      };
+
+      await catalogApi.submitDonorItem(payload);
+      setIsSubmittedToNgo(true);
+      addToast(`🎉 Garment successfully submitted & published to NGO store!`, 'success');
+    } catch (err) {
+      console.error('Failed to submit item to NGO:', err);
+      addToast('Error submitting to NGO network', 'error');
+    } finally {
+      setIsSubmittingToNgo(false);
     }
   };
 
@@ -184,6 +242,38 @@ export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenN
                 <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Subject:</span>
                 <span className="text-xs font-bold line-clamp-1">{selectedSample.name}</span>
                 <span className="text-[10px] text-emerald-300 block">{category} • {fabric}</span>
+              </div>
+            </div>
+
+            {/* Upload or Camera Click Input Bar */}
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                📸 Upload / Click Photo of Your Garment:
+              </span>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Item Name (e.g. Blue Silk Kurta)..."
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Upload / Snap</span>
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                />
               </div>
             </div>
 
@@ -334,8 +424,17 @@ export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenN
 
                 {/* AI Rationale */}
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700">
-                  <span className="font-bold text-slate-900 block mb-1">AI Decision Rationale:</span>
+                  <span className="font-bold text-slate-900 block mb-1">Google Cloud Vision & AI Rationale:</span>
                   <p className="leading-relaxed">{assessmentResult.decisionRationale}</p>
+                  {assessmentResult.detectedFactors && assessmentResult.detectedFactors.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-slate-200/80 flex flex-wrap gap-1.5">
+                      {assessmentResult.detectedFactors.map((factor, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {factor}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Target Destination & Environmental LCA Saving */}
@@ -350,6 +449,63 @@ export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenN
                       💧 {assessmentResult.estimatedWaterSavedLiters} L Water | 🌿 {assessmentResult.estimatedCo2SavedKg} kg CO₂
                     </span>
                   </div>
+                </div>
+
+                {/* Dynamic Quality Score & NGO Route Banner (<50 Recycle, >=50 Sell/Donate) */}
+                <div className={`p-4 rounded-xl border-2 flex items-center justify-between gap-3 ${
+                  (assessmentResult.qualityScore ?? 85) >= 50
+                    ? 'bg-emerald-50 border-emerald-500/50 text-emerald-950'
+                    : 'bg-rose-50 border-rose-500/50 text-rose-950'
+                }`}>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                        (assessmentResult.qualityScore ?? 85) >= 50
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-rose-600 text-white'
+                      }`}>
+                        {(assessmentResult.qualityScore ?? 85) >= 50 ? 'Approved to Sell / Donate' : 'Designated for Recycling'}
+                      </span>
+                      <span className="text-xs font-bold font-mono">
+                        Score: {assessmentResult.qualityScore ?? 85}/100
+                      </span>
+                    </div>
+                    <p className="text-xs mt-1 text-slate-700 font-medium">
+                      {(assessmentResult.qualityScore ?? 85) >= 50
+                        ? '✅ Quality is ≥ 50: Fabric weave & integrity verified. Safe for direct community beneficiary store & NGO redistribution.'
+                        : '⚠️ Quality is < 50: Structural rips, stains, or critical defects detected. Routing to textile fiber shredding for zero landfill.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Final Submit to NGO Network Button */}
+                <div className="p-3 bg-slate-900 rounded-xl text-white flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="text-xs">
+                    <span className="font-bold block text-emerald-400">Final Step: Push Item to NGO Partner Network</span>
+                    <span className="text-slate-300 text-[11px]">Publishes image, AI score ({assessmentResult.qualityScore ?? 85}/100), and defects to NGO inventory.</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSubmitFinalToNgo}
+                    disabled={isSubmittingToNgo || isSubmittedToNgo}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap shadow-md ${
+                      isSubmittedToNgo
+                        ? 'bg-emerald-500 text-slate-950'
+                        : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
+                    }`}
+                  >
+                    {isSubmittedToNgo ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Submitted to NGO Website</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>{isSubmittingToNgo ? 'Publishing...' : 'Submit Final Item to NGO'}</span>
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 {/* Next Steps List */}

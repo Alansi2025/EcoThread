@@ -54,15 +54,54 @@ public class AuthController {
         ));
     }
 
+    @PostMapping("/google")
+    @Operation(summary = "Authenticate or register user via Google Sign-In")
+    public ResponseEntity<?> googleLogin(@RequestBody java.util.Map<String, String> body) {
+        String email = body.get("email");
+        String name = body.get("name");
+        String roleStr = body.getOrDefault("role", "ROLE_DONOR");
+
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Google email is required");
+        }
+
+        Role role;
+        try {
+            role = Role.valueOf(roleStr);
+        } catch (Exception e) {
+            role = Role.ROLE_DONOR;
+        }
+
+        Role finalRole = role;
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setFullName(name != null && !name.trim().isEmpty() ? name : email.split("@")[0]);
+            newUser.setPasswordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
+            newUser.setRole(finalRole);
+            newUser.setCredits(finalRole == Role.ROLE_BENEFICIARY ? 150 : 0);
+            return userRepository.save(newUser);
+        });
+
+        String token = tokenProvider.generateToken(user);
+        return ResponseEntity.ok(new AuthResponse(
+                token,
+                user.getId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getCredits()
+        ));
+    }
+
     @PostMapping("/register")
-    @Operation(summary = "Register a new user (Donor, Beneficiary, etc.)")
+    @Operation(summary = "Register a new user (Donor, NGO, Beneficiary, etc.)")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("Email is already registered: " + request.getEmail());
         }
 
         Role role = request.getRole() != null ? request.getRole() : Role.ROLE_DONOR;
-        // Beneficiaries start with 150 seasonal credits by default
         int initialCredits = (role == Role.ROLE_BENEFICIARY) ? 150 : 0;
 
         User user = new User(
@@ -73,6 +112,14 @@ public class AuthController {
                 role,
                 initialCredits
         );
+
+        user.setOrganizationName(request.getOrganizationName());
+        user.setContactPerson(request.getContactPerson());
+        user.setServiceArea(request.getServiceArea());
+        user.setRegistrationNumber(request.getRegistrationNumber());
+        user.setBioOrMission(request.getBioOrMission());
+        user.setAddress(request.getAddress());
+        user.setIsVerified(role == Role.ROLE_DONOR); // Donors verified automatically, NGOs undergo verification
 
         User saved = userRepository.save(user);
         String token = tokenProvider.generateToken(saved);
@@ -93,8 +140,46 @@ public class AuthController {
         if (currentUser == null) {
             return ResponseEntity.status(401).body("Unauthenticated");
         }
-        // Refresh from DB to get latest credits and details
         User fresh = userRepository.findById(currentUser.getId()).orElse(currentUser);
         return ResponseEntity.ok(new UserDto(fresh));
+    }
+
+    @PutMapping("/profile")
+    @Operation(summary = "Update current authenticated user profile")
+    public ResponseEntity<?> updateProfile(@AuthenticationPrincipal User currentUser,
+                                           @RequestBody java.util.Map<String, String> updates) {
+        if (currentUser == null) {
+            return ResponseEntity.status(401).body("Unauthenticated");
+        }
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (updates.containsKey("fullName") && updates.get("fullName") != null && !updates.get("fullName").isBlank()) {
+            user.setFullName(updates.get("fullName").trim());
+        }
+        if (updates.containsKey("phone")) {
+            user.setPhone(updates.get("phone"));
+        }
+        if (updates.containsKey("organizationName")) {
+            user.setOrganizationName(updates.get("organizationName"));
+        }
+        if (updates.containsKey("contactPerson")) {
+            user.setContactPerson(updates.get("contactPerson"));
+        }
+        if (updates.containsKey("serviceArea")) {
+            user.setServiceArea(updates.get("serviceArea"));
+        }
+        if (updates.containsKey("registrationNumber")) {
+            user.setRegistrationNumber(updates.get("registrationNumber"));
+        }
+        if (updates.containsKey("bioOrMission")) {
+            user.setBioOrMission(updates.get("bioOrMission"));
+        }
+        if (updates.containsKey("address")) {
+            user.setAddress(updates.get("address"));
+        }
+
+        User updated = userRepository.save(user);
+        return ResponseEntity.ok(new UserDto(updated));
     }
 }

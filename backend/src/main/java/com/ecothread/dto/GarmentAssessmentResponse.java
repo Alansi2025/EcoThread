@@ -22,8 +22,37 @@ public class GarmentAssessmentResponse {
     
     private String recommendedDestination;
     private String generatedPassportId;
+    
+    // Quality Score (0-100), Threshold Verdict, and Decision Action
+    private Integer qualityScore; // 0 to 100
+    private String actionVerdict; // "SELL_DONATE" (>=50) vs "RECYCLE" (<50)
+    private Boolean isApprovedForNgo; // true if qualityScore >= 50
 
     public GarmentAssessmentResponse() {}
+
+    public Integer getQualityScore() {
+        return qualityScore;
+    }
+
+    public void setQualityScore(Integer qualityScore) {
+        this.qualityScore = qualityScore;
+    }
+
+    public String getActionVerdict() {
+        return actionVerdict;
+    }
+
+    public void setActionVerdict(String actionVerdict) {
+        this.actionVerdict = actionVerdict;
+    }
+
+    public Boolean getIsApprovedForNgo() {
+        return isApprovedForNgo;
+    }
+
+    public void setIsApprovedForNgo(Boolean isApprovedForNgo) {
+        this.isApprovedForNgo = isApprovedForNgo;
+    }
 
     public String getAssessmentId() {
         return assessmentId;

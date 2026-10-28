@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.20.8",
+    "@react-oauth/google": "^0.13.5",
     "autoprefixer": "^10.6.1",
     "axios": "^1.20.0",
     "canvas-confetti": "^1.9.4",
@@ -17,6 +19,7 @@
     "postcss": "^8.5.30",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.5",
     "tailwindcss": "^3.4.19"
   },
   "devDependencies": {

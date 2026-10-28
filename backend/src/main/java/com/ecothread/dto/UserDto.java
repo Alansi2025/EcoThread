@@ -10,6 +10,13 @@ public class UserDto {
     private String phone;
     private Role role;
     private Integer credits;
+    private String organizationName;
+    private String contactPerson;
+    private String serviceArea;
+    private String registrationNumber;
+    private String bioOrMission;
+    private Boolean isVerified;
+    private String address;
 
     public UserDto() {}
 
@@ -20,6 +27,13 @@ public class UserDto {
         this.phone = user.getPhone();
         this.role = user.getRole();
         this.credits = user.getCredits();
+        this.organizationName = user.getOrganizationName();
+        this.contactPerson = user.getContactPerson();
+        this.serviceArea = user.getServiceArea();
+        this.registrationNumber = user.getRegistrationNumber();
+        this.bioOrMission = user.getBioOrMission();
+        this.isVerified = user.getIsVerified();
+        this.address = user.getAddress();
     }
 
     public Long getId() {
@@ -68,5 +82,61 @@ public class UserDto {
 
     public void setCredits(Integer credits) {
         this.credits = credits;
+    }
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
+    }
+
+    public String getContactPerson() {
+        return contactPerson;
+    }
+
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
+    }
+
+    public String getServiceArea() {
+        return serviceArea;
+    }
+
+    public void setServiceArea(String serviceArea) {
+        this.serviceArea = serviceArea;
+    }
+
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
+    }
+
+    public String getBioOrMission() {
+        return bioOrMission;
+    }
+
+    public void setBioOrMission(String bioOrMission) {
+        this.bioOrMission = bioOrMission;
+    }
+
+    public Boolean getIsVerified() {
+        return isVerified;
+    }
+
+    public void setIsVerified(Boolean isVerified) {
+        this.isVerified = isVerified;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

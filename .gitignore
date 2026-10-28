@@ -13,6 +13,11 @@ Thumbs.db
 **/derby_data/
 **/derby.log
 
+# Environment Variables (API Keys)
+**/.env
+**/.env.*
+!**/.env.example
+
 # Node & Frontend Build Output
 **/node_modules/
 **/dist/

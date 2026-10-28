@@ -286,14 +286,17 @@ export const NgoNeedsLocatorModal = ({ isOpen, onClose, onSchedulePickup }) => {
                         💡 {ngo.ecoTravelAdvice}
                       </p>
                       <div className="flex items-center space-x-2 flex-shrink-0">
-                        <button
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&origin=${selectedLocation.lat},${selectedLocation.lng}&destination=${ngo.latitude},${ngo.longitude}&travelmode=driving`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           onClick={() => {
-                            addToast(`Direct drop-off directions generated for ${ngo.name}!`, 'success');
+                            addToast(`Opening Google Maps directions to ${ngo.name}!`, 'success');
                           }}
                           className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-1"
                         >
                           <Navigation className="w-3 h-3 text-slate-500" /> Get Directions
-                        </button>
+                        </a>
                         <button
                           onClick={() => {
                             onClose();

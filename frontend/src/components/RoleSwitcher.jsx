@@ -17,7 +17,7 @@ export const RoleSwitcher = ({ activeTab, onTabChange }) => {
   const handleRoleClick = async (roleId) => {
     await switchRole(roleId);
     const target = roles.find((r) => r.id === roleId);
-    showToast(`Switched persona to ${target?.label || roleId}`, 'info');
+    showToast(`Switched workspace to ${target?.label || roleId}`, 'info');
     if (onTabChange) {
       if (roleId === 'ROLE_DONOR') onTabChange('donor');
       else if (roleId === 'ROLE_BENEFICIARY') onTabChange('beneficiary');
@@ -30,9 +30,9 @@ export const RoleSwitcher = ({ activeTab, onTabChange }) => {
     <div className="bg-slate-900 text-slate-200 text-xs py-2 px-4 shadow-inner border-b border-slate-800">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-          <span className="font-semibold text-slate-300 uppercase tracking-wider">Demo Role Switcher:</span>
-          <span className="text-slate-400 hidden sm:inline">Click any role to test its specific capabilities:</span>
+          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="font-semibold text-slate-300 uppercase tracking-wider">Active Workspace:</span>
+          <span className="text-slate-400 hidden sm:inline">Select portal workspace:</span>
         </div>
 
         <div className="flex items-center gap-1.5 flex-wrap">

@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X, MapPin, Truck, Building2, Navigation, Compass, Phone,
   Clock, ShieldCheck, Zap, BatteryCharging, Radio, Filter,
   RefreshCw, CheckCircle2, ArrowRight, AlertTriangle, Eye,
   Maximize2, ChevronRight, Layers, Sparkles
 } from 'lucide-react';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Polyline } from '@react-google-maps/api';
 import { trackingApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const SIMULATED_DONOR_LOCATIONS = [
   { label: 'Campus SAC - IIT Delhi (Default)', lat: 28.5458, lng: 77.1926 },
@@ -15,16 +18,51 @@ const SIMULATED_DONOR_LOCATIONS = [
   { label: 'Okhla Industrial Area Phase-III', lat: 28.5355, lng: 77.2731 },
 ];
 
+// Dark-themed map style to match the UI
+const DARK_MAP_STYLE = [
+  { elementType: 'geometry', stylers: [{ color: '#0f172a' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#0f172a' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] },
+  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#1e3a2f' }] },
+  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#4ade80' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#334155' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#475569' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
+  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0c1220' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#334155' }] },
+];
+
+const MAP_CONTAINER_STYLE = {
+  width: '100%',
+  height: '100%',
+};
+
 export const LiveLogisticsMapModal = ({ isOpen, onClose, selectedPickupId, onSchedulePickup }) => {
   const { addToast } = useToast();
   const [donorLocation, setDonorLocation] = useState(SIMULATED_DONOR_LOCATIONS[0]);
   const [telemetry, setTelemetry] = useState(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [filterMode, setFilterMode] = useState('ALL'); // 'ALL', 'FLEET', 'NGOS', 'ROUTE'
-  const [selectedEntity, setSelectedEntity] = useState(null); // { type: 'FLEET' | 'NGO', data: ... }
+  const [filterMode, setFilterMode] = useState('ALL');
+  const [selectedEntity, setSelectedEntity] = useState(null);
   const [lastPingTime, setLastPingTime] = useState(new Date().toLocaleTimeString());
+  const [activeInfoWindow, setActiveInfoWindow] = useState(null);
   const timerRef = useRef(null);
+  const mapRef = useRef(null);
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+  });
+
+  const onMapLoad = useCallback((map) => {
+    mapRef.current = map;
+  }, []);
 
   const fetchTelemetry = async (isSilent = false) => {
     if (!isSilent) setLoading(true);
@@ -37,11 +75,9 @@ export const LiveLogisticsMapModal = ({ isOpen, onClose, selectedPickupId, onSch
       setTelemetry(res.data);
       setLastPingTime(new Date().toLocaleTimeString());
 
-      // Default select the primary assigned driver if not already set
       if (!selectedEntity && res.data?.logisticsFleet?.length > 0) {
         setSelectedEntity({ type: 'FLEET', data: res.data.logisticsFleet[0] });
       } else if (selectedEntity?.type === 'FLEET') {
-        // Update selected fleet vehicle telemetry dynamically
         const updated = res.data.logisticsFleet.find(v => v.id === selectedEntity.data.id);
         if (updated) setSelectedEntity({ type: 'FLEET', data: updated });
       }
@@ -62,7 +98,6 @@ export const LiveLogisticsMapModal = ({ isOpen, onClose, selectedPickupId, onSch
     };
   }, [isOpen, donorLocation, selectedPickupId]);
 
-  // Auto-refresh telemetry every 3.5 seconds
   useEffect(() => {
     if (isOpen && autoRefresh) {
       timerRef.current = setInterval(() => {
@@ -76,23 +111,28 @@ export const LiveLogisticsMapModal = ({ isOpen, onClose, selectedPickupId, onSch
     };
   }, [isOpen, autoRefresh, donorLocation, selectedPickupId]);
 
+  // Fit map bounds to all visible markers
+  useEffect(() => {
+    if (!mapRef.current || !telemetry || !isLoaded) return;
+    const bounds = new window.google.maps.LatLngBounds();
+    bounds.extend({ lat: donorLocation.lat, lng: donorLocation.lng });
+
+    if (filterMode !== 'NGOS') {
+      telemetry?.logisticsFleet?.forEach(v => {
+        bounds.extend({ lat: v.currentLat, lng: v.currentLng });
+      });
+    }
+    if (filterMode !== 'FLEET') {
+      telemetry?.ngos?.forEach(n => {
+        bounds.extend({ lat: n.latitude, lng: n.longitude });
+      });
+    }
+    mapRef.current.fitBounds(bounds, { top: 60, right: 40, bottom: 40, left: 40 });
+  }, [telemetry, filterMode, donorLocation, isLoaded]);
+
   if (!isOpen) return null;
 
-  // Coordinate normalizer for 2D visual projection on canvas map
-  // Delhi NCR bounds ~ Lat [28.52 to 28.58], Lng [77.18 to 77.30]
-  const minLat = 28.525, maxLat = 28.575;
-  const minLng = 77.180, maxLng = 77.305;
-
-  const projectToMap = (lat, lng) => {
-    const x = Math.min(94, Math.max(6, ((lng - minLng) / (maxLng - minLng)) * 100));
-    const y = Math.min(94, Math.max(6, (1.0 - (lat - minLat) / (maxLat - minLat)) * 100));
-    return { left: `${x}%`, top: `${y}%` };
-  };
-
-  const donorPos = projectToMap(
-    telemetry?.donorLocation?.lat || donorLocation.lat,
-    telemetry?.donorLocation?.lng || donorLocation.lng
-  );
+  const mapCenter = { lat: donorLocation.lat, lng: donorLocation.lng };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
@@ -121,7 +161,6 @@ export const LiveLogisticsMapModal = ({ isOpen, onClose, selectedPickupId, onSch
           </div>
 
           <div className="flex items-center space-x-2">
-            {/* Auto refresh pill */}
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center gap-1.5 transition-all ${
@@ -134,8 +173,6 @@ export const LiveLogisticsMapModal = ({ isOpen, onClose, selectedPickupId, onSch
               <RefreshCw className={`w-3.5 h-3.5 ${autoRefresh ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
               <span className="hidden sm:inline">{autoRefresh ? 'Live Pings Active' : 'Paused'}</span>
             </button>
-
-            {/* Close Button */}
             <button
               onClick={onClose}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
@@ -192,76 +229,174 @@ export const LiveLogisticsMapModal = ({ isOpen, onClose, selectedPickupId, onSch
           </div>
         </div>
 
-        {/* Main Body: Interactive Map Canvas + Telemetry Side Drawer */}
+        {/* Main Body: Google Map + Telemetry Side Drawer */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
           
-          {/* Spatial Vector Map Canvas */}
-          <div className="flex-1 relative bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden select-none min-h-[350px]">
-            
-            {/* Visual Radar Grid & Street Arterials */}
-            <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-70"></div>
-            
-            {/* Simulated Road Arteries */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40">
-              {/* Outer Ring Road arterial */}
-              <path d="M 50 150 Q 300 280 800 240" fill="none" stroke="#334155" strokeWidth="6" strokeLinecap="round" />
-              <path d="M 50 150 Q 300 280 800 240" fill="none" stroke="#475569" strokeWidth="2" strokeDasharray="6 6" />
-              
-              {/* Aurobindo Marg */}
-              <path d="M 220 30 Q 350 350 480 650" fill="none" stroke="#334155" strokeWidth="5" strokeLinecap="round" />
-              
-              {/* Mathura Road */}
-              <path d="M 680 80 Q 720 380 760 700" fill="none" stroke="#334155" strokeWidth="5" strokeLinecap="round" />
+          {/* Google Map Canvas */}
+          <div className="flex-1 relative bg-slate-950 overflow-hidden min-h-[350px]">
+            {loadError && (
+              <div className="absolute inset-0 flex items-center justify-center text-red-400 text-sm p-8 text-center">
+                <p>Failed to load Google Maps. Please check your API key and try again.</p>
+              </div>
+            )}
 
-              {/* Active Route Polylines from Logistics Fleet */}
-              {telemetry?.logisticsFleet?.map((fleetItem) => {
-                if (filterMode === 'NGOS') return null;
-                const isSelected = selectedEntity?.type === 'FLEET' && selectedEntity.data.id === fleetItem.id;
-                
-                // Get target NGO position
-                const targetNgo = telemetry?.ngos?.find(n => n.id === fleetItem.targetNgoId);
-                const startPos = projectToMap(donorLocation.lat, donorLocation.lng);
-                const vanPos = projectToMap(fleetItem.currentLat, fleetItem.currentLng);
-                const endPos = targetNgo ? projectToMap(targetNgo.latitude, targetNgo.longitude) : { left: '85%', top: '65%' };
+            {!isLoaded ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Compass className="w-8 h-8 animate-spin text-emerald-400" />
+              </div>
+            ) : (
+              <GoogleMap
+                mapContainerStyle={MAP_CONTAINER_STYLE}
+                center={mapCenter}
+                zoom={13}
+                onLoad={onMapLoad}
+                options={{
+                  styles: DARK_MAP_STYLE,
+                  disableDefaultUI: false,
+                  zoomControl: true,
+                  mapTypeControl: false,
+                  streetViewControl: false,
+                  fullscreenControl: true,
+                  gestureHandling: 'greedy',
+                }}
+              >
+                {/* DONOR LOCATION MARKER */}
+                {(filterMode === 'ALL' || filterMode === 'ROUTE' || filterMode === 'FLEET') && (
+                  <Marker
+                    position={{ lat: donorLocation.lat, lng: donorLocation.lng }}
+                    onClick={() => {
+                      setSelectedEntity({
+                        type: 'DONOR',
+                        data: {
+                          name: telemetry?.donorLocation?.label || donorLocation.label,
+                          address: telemetry?.donorLocation?.address || 'Hauz Khas Enclave, New Delhi',
+                          lat: donorLocation.lat,
+                          lng: donorLocation.lng
+                        }
+                      });
+                      setActiveInfoWindow('donor');
+                    }}
+                    icon={{
+                      path: window.google.maps.SymbolPath.CIRCLE,
+                      scale: 12,
+                      fillColor: '#10b981',
+                      fillOpacity: 1,
+                      strokeColor: '#ffffff',
+                      strokeWeight: 3,
+                    }}
+                    title="You (Donor)"
+                  />
+                )}
 
-                return (
-                  <g key={`route-${fleetItem.id}`} className="transition-all duration-1000">
-                    {/* Route Line */}
-                    <line
-                      x1={startPos.left}
-                      y1={startPos.top}
-                      x2={vanPos.left}
-                      y2={vanPos.top}
-                      stroke={isSelected ? '#10b981' : '#38bdf8'}
-                      strokeWidth={isSelected ? '3.5' : '2'}
-                      strokeDasharray="6 4"
-                      className="animate-pulse"
-                      strokeOpacity={isSelected ? 0.9 : 0.4}
+                {/* NGO MARKERS */}
+                {(filterMode === 'ALL' || filterMode === 'NGOS' || filterMode === 'ROUTE') &&
+                  telemetry?.ngos?.map((ngo) => (
+                    <Marker
+                      key={`ngo-${ngo.id}`}
+                      position={{ lat: ngo.latitude, lng: ngo.longitude }}
+                      onClick={() => {
+                        setSelectedEntity({ type: 'NGO', data: ngo });
+                        setActiveInfoWindow(`ngo-${ngo.id}`);
+                      }}
+                      icon={{
+                        path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z',
+                        fillColor: '#6366f1',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2,
+                        scale: 1.6,
+                        anchor: new window.google.maps.Point(12, 22),
+                      }}
+                      title={ngo.name}
                     />
-                    <line
-                      x1={vanPos.left}
-                      y1={vanPos.top}
-                      x2={endPos.left}
-                      y2={endPos.top}
-                      stroke={isSelected ? '#f59e0b' : '#64748b'}
-                      strokeWidth={isSelected ? '3' : '1.5'}
-                      strokeDasharray="5 5"
-                      strokeOpacity={isSelected ? 0.8 : 0.3}
+                  ))
+                }
+
+                {/* FLEET VEHICLE MARKERS */}
+                {(filterMode === 'ALL' || filterMode === 'FLEET' || filterMode === 'ROUTE') &&
+                  telemetry?.logisticsFleet?.map((vehicle) => (
+                    <Marker
+                      key={`fleet-${vehicle.id}`}
+                      position={{ lat: vehicle.currentLat, lng: vehicle.currentLng }}
+                      onClick={() => {
+                        setSelectedEntity({ type: 'FLEET', data: vehicle });
+                        setActiveInfoWindow(`fleet-${vehicle.id}`);
+                      }}
+                      icon={{
+                        path: 'M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4z',
+                        fillColor: '#f59e0b',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2,
+                        scale: 1.2,
+                        anchor: new window.google.maps.Point(12, 12),
+                      }}
+                      title={`${vehicle.driverName} • ETA: ${vehicle.etaMinutes}m`}
                     />
-                  </g>
-                );
-              })}
-            </svg>
+                  ))
+                }
+
+                {/* ROUTE POLYLINES: Donor → Fleet → NGO */}
+                {telemetry?.logisticsFleet?.map((fleetItem) => {
+                  if (filterMode === 'NGOS') return null;
+                  const isSelected = selectedEntity?.type === 'FLEET' && selectedEntity.data.id === fleetItem.id;
+                  const targetNgo = telemetry?.ngos?.find(n => n.id === fleetItem.targetNgoId);
+
+                  return (
+                    <React.Fragment key={`route-${fleetItem.id}`}>
+                      {/* Donor → Fleet Vehicle */}
+                      <Polyline
+                        path={[
+                          { lat: donorLocation.lat, lng: donorLocation.lng },
+                          { lat: fleetItem.currentLat, lng: fleetItem.currentLng },
+                        ]}
+                        options={{
+                          strokeColor: isSelected ? '#10b981' : '#38bdf8',
+                          strokeOpacity: isSelected ? 0.9 : 0.4,
+                          strokeWeight: isSelected ? 4 : 2,
+                          geodesic: true,
+                          icons: [{
+                            icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 },
+                            offset: '0',
+                            repeat: '16px',
+                          }],
+                        }}
+                      />
+                      {/* Fleet Vehicle → Target NGO */}
+                      {targetNgo && (
+                        <Polyline
+                          path={[
+                            { lat: fleetItem.currentLat, lng: fleetItem.currentLng },
+                            { lat: targetNgo.latitude, lng: targetNgo.longitude },
+                          ]}
+                          options={{
+                            strokeColor: isSelected ? '#f59e0b' : '#64748b',
+                            strokeOpacity: isSelected ? 0.8 : 0.3,
+                            strokeWeight: isSelected ? 3.5 : 1.5,
+                            geodesic: true,
+                            icons: [{
+                              icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 },
+                              offset: '0',
+                              repeat: '14px',
+                            }],
+                          }}
+                        />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </GoogleMap>
+            )}
 
             {/* Compass / Scale Overlay */}
-            <div className="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2 shadow-lg">
-              <Compass className="w-4 h-4 text-emerald-400 animate-spin-slow" />
+            <div className="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2 shadow-lg pointer-events-none">
+              <Compass className="w-4 h-4 text-emerald-400" />
               <span>South Delhi Redistribution Sector (Radius: 12 km)</span>
               <span className="text-emerald-400 font-bold">• GPS Synced</span>
             </div>
 
             {/* Map Legend Overlay */}
-            <div className="absolute bottom-4 left-4 z-10 bg-slate-900/90 backdrop-blur-md p-2.5 rounded-xl border border-slate-800 text-[11px] space-y-1.5 shadow-xl">
+            <div className="absolute bottom-4 left-4 z-10 bg-slate-900/90 backdrop-blur-md p-2.5 rounded-xl border border-slate-800 text-[11px] space-y-1.5 shadow-xl pointer-events-none">
               <div className="font-semibold text-slate-300 text-[10px] uppercase tracking-wider mb-1">Radar Legend</div>
               <div className="flex items-center gap-2 text-emerald-300">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white"></span>
@@ -276,98 +411,6 @@ export const LiveLogisticsMapModal = ({ isOpen, onClose, selectedPickupId, onSch
                 <span>Partner NGO / Shelter Hub</span>
               </div>
             </div>
-
-            {/* 1. DONOR LOCATION PIN */}
-            {(filterMode === 'ALL' || filterMode === 'ROUTE' || filterMode === 'FLEET') && (
-              <div
-                style={donorPos}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer group"
-                onClick={() => {
-                  setSelectedEntity({
-                    type: 'DONOR',
-                    data: {
-                      name: telemetry?.donorLocation?.label || donorLocation.label,
-                      address: telemetry?.donorLocation?.address || 'Hauz Khas Enclave, New Delhi',
-                      lat: donorLocation.lat,
-                      lng: donorLocation.lng
-                    }
-                  });
-                }}
-              >
-                {/* Sonar Pulse Wave */}
-                <span className="absolute -inset-4 rounded-full bg-emerald-500/20 animate-ping"></span>
-                <div className="relative w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow-lg shadow-emerald-500/40 flex items-center justify-center text-slate-950 font-bold">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div className="absolute top-9 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-emerald-500/50 text-[10px] font-bold text-emerald-300 px-2 py-0.5 rounded-md shadow-md whitespace-nowrap">
-                  You (Donor)
-                </div>
-              </div>
-            )}
-
-            {/* 2. PARTNER NGOS PINS */}
-            {(filterMode === 'ALL' || filterMode === 'NGOS' || filterMode === 'ROUTE') &&
-              telemetry?.ngos?.map((ngo) => {
-                const pos = projectToMap(ngo.latitude, ngo.longitude);
-                const isSelected = selectedEntity?.type === 'NGO' && selectedEntity.data.id === ngo.id;
-
-                return (
-                  <div
-                    key={`ngo-${ngo.id}`}
-                    style={pos}
-                    onClick={() => setSelectedEntity({ type: 'NGO', data: ngo })}
-                    className={`absolute transform -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer group transition-transform ${
-                      isSelected ? 'scale-125 z-40' : 'hover:scale-110'
-                    }`}
-                  >
-                    <div className={`relative p-1.5 rounded-xl border shadow-lg flex items-center justify-center transition-all ${
-                      isSelected 
-                        ? 'bg-indigo-600 border-white text-white shadow-indigo-500/50' 
-                        : 'bg-indigo-950/90 border-indigo-500/60 text-indigo-300 hover:border-indigo-400'
-                    }`}>
-                      <Building2 className="w-4 h-4" />
-                    </div>
-                    {/* Tooltip Label */}
-                    <div className="absolute top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-slate-700 text-[10px] font-medium text-slate-200 px-2 py-0.5 rounded-md shadow-md whitespace-nowrap pointer-events-none group-hover:block transition-all">
-                      <span className="font-bold text-indigo-300">{ngo.name.split(' ')[0]}</span> ({ngo.distanceKm} km)
-                    </div>
-                  </div>
-                );
-              })}
-
-            {/* 3. LOGISTICS FLEET MOVING PINS */}
-            {(filterMode === 'ALL' || filterMode === 'FLEET' || filterMode === 'ROUTE') &&
-              telemetry?.logisticsFleet?.map((vehicle) => {
-                const pos = projectToMap(vehicle.currentLat, vehicle.currentLng);
-                const isSelected = selectedEntity?.type === 'FLEET' && selectedEntity.data.id === vehicle.id;
-
-                return (
-                  <div
-                    key={`fleet-${vehicle.id}`}
-                    style={pos}
-                    onClick={() => setSelectedEntity({ type: 'FLEET', data: vehicle })}
-                    className={`absolute transform -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer group transition-all duration-1000 ${
-                      isSelected ? 'scale-125 z-40' : 'hover:scale-110'
-                    }`}
-                  >
-                    {/* Pulse beacon */}
-                    <span className="absolute -inset-2 rounded-full bg-amber-400/20 animate-pulse"></span>
-                    <div className={`relative p-2 rounded-2xl border shadow-xl flex items-center justify-center transition-all ${
-                      isSelected 
-                        ? 'bg-amber-500 border-white text-slate-950 shadow-amber-500/60' 
-                        : 'bg-amber-950/90 border-amber-500/60 text-amber-300 hover:border-amber-400'
-                    }`}>
-                      <Truck className="w-4 h-4" />
-                    </div>
-                    {/* Live Vehicle Badge */}
-                    <div className="absolute top-9 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-amber-500/40 text-[9px] font-bold text-amber-200 px-2 py-0.5 rounded-md shadow-lg whitespace-nowrap flex items-center gap-1">
-                      <span>{vehicle.driverName.split(' ')[0]}</span>
-                      <span className="text-emerald-400">• {vehicle.etaMinutes}m ETA</span>
-                    </div>
-                  </div>
-                );
-              })}
-
           </div>
 
           {/* Right Side: Telemetry Inspector & Feed */}
@@ -509,6 +552,17 @@ export const LiveLogisticsMapModal = ({ isOpen, onClose, selectedPickupId, onSch
                       <span className="font-medium">{selectedEntity.data.contactPerson} ({selectedEntity.data.contactPhone})</span>
                     </div>
                   </div>
+
+                  {/* Google Maps Directions Button */}
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&origin=${donorLocation.lat},${donorLocation.lng}&destination=${selectedEntity.data.latitude},${selectedEntity.data.longitude}&travelmode=driving`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all"
+                  >
+                    <Navigation className="w-3.5 h-3.5" />
+                    Open in Google Maps
+                  </a>
 
                   {/* Direct Action Button */}
                   <button

@@ -59,6 +59,14 @@ public class DataInitializer implements CommandLineRunner {
         User beneficiary3 = new User("Anand Swamy", "anand@ecothread.org", encodedPassword, "+91 98450 33221", Role.ROLE_BENEFICIARY, 25);
         User driver = new User("Ramesh Kumar", "driver@ecothread.org", encodedPassword, "+91 98450 11223", Role.ROLE_LOGISTICS, 0);
         User admin = new User("Warehouse Manager - Neha", "admin@ecothread.org", encodedPassword, "+91 98450 99887", Role.ROLE_ADMIN, 0);
+        User ngo = new User("Sister Maria - Asha Sadan", "ngo@ecothread.org", encodedPassword, "+91 98450 77112", Role.ROLE_NGO, 0);
+        ngo.setOrganizationName("Asha Sadan Shelter & Child Welfare Foundation");
+        ngo.setContactPerson("Sister Maria");
+        ngo.setServiceArea("Koramangala, Bengaluru");
+        ngo.setRegistrationNumber("KAR-NGO-8841-80G");
+        ngo.setBioOrMission("Providing emergency shelter, winter clothing, and dignity kits for abandoned women and children in Bengaluru urban slums.");
+        ngo.setIsVerified(true);
+        ngo.setAddress("14 Hosur Main Road, Koramangala 1st Block, Bengaluru, 560034");
 
         donor = userRepository.save(donor);
         beneficiary = userRepository.save(beneficiary);
@@ -66,6 +74,7 @@ public class DataInitializer implements CommandLineRunner {
         beneficiary3 = userRepository.save(beneficiary3);
         driver = userRepository.save(driver);
         admin = userRepository.save(admin);
+        ngo = userRepository.save(ngo);
 
         // 2. Seed Addresses
         Address donorAddress = new Address(donor, "42 Richmond Road, Langford Town", "Bengaluru", "Karnataka", "560025", 12.9608, 77.6033);
