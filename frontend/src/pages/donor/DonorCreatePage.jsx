@@ -171,7 +171,23 @@ export const DonorCreatePage = () => {
       navigate('/donor/donations');
     } catch (err) {
       console.error('Failed to create donation', err);
-      setError(err.response?.data?.message || err.response?.data || 'Failed to submit donation. Please try again.');
+      let errorMsg = 'Failed to submit donation. Please try again.';
+
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        errorMsg = 'Your session has expired or your account is unauthenticated. Please log in again to continue.';
+      } else if (err.response?.data?.fieldErrors && typeof err.response.data.fieldErrors === 'object') {
+        const fields = Object.entries(err.response.data.fieldErrors)
+          .map(([k, v]) => `${v}`)
+          .join(', ');
+        errorMsg = `Validation error: ${fields}`;
+      } else if (typeof err.response?.data?.message === 'string') {
+        errorMsg = err.response.data.message;
+      } else if (typeof err.response?.data === 'string') {
+        errorMsg = err.response.data;
+      }
+
+      setError(errorMsg);
+      showToast(errorMsg, 'error');
       setLoading(false);
     }
   };
@@ -194,9 +210,20 @@ export const DonorCreatePage = () => {
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-3 animate-fadeIn">
-          <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />
-          <span className="font-medium">{error}</span>
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-3 animate-fadeIn">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />
+            <span className="font-medium">{error}</span>
+          </div>
+          {error.includes('log in') && (
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-bold hover:bg-rose-700 transition-all flex-shrink-0"
+            >
+              Log In Now
+            </button>
+          )}
         </div>
       )}
 

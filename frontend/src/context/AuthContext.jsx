@@ -50,6 +50,15 @@ export const AuthProvider = ({ children }) => {
     };
 
     initializeAuth();
+
+    const handleAuthExpired = () => {
+      console.warn('Session expired or invalidated. Resetting user state.');
+      setUser(null);
+      setToken(null);
+    };
+
+    window.addEventListener('ecothread_auth_expired', handleAuthExpired);
+    return () => window.removeEventListener('ecothread_auth_expired', handleAuthExpired);
   }, []);
 
   const login = async (email, password, rememberMe = true) => {

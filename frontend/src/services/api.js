@@ -17,6 +17,28 @@ api.interceptors.request.use((config) => {
   return config;
 }, (error) => Promise.reject(error));
 
+// Interceptor to handle expired or unauthorized sessions
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      const url = error.config?.url || '';
+      // Do not clear on normal login/register credential check failures
+      if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+        const hadToken = localStorage.getItem('ecothread_token');
+        if (hadToken) {
+          localStorage.removeItem('ecothread_token');
+          sessionStorage.removeItem('ecothread_token');
+          window.dispatchEvent(new CustomEvent('ecothread_auth_expired', {
+            detail: { status: error.response.status }
+          }));
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Centralized API calls
 export const authApi = {
   login: (email, password) => api.post('/auth/login', { email, password }),

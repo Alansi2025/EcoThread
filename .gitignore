@@ -9,9 +9,12 @@ Thumbs.db
 **/.mvn/wrapper/maven-wrapper.jar
 *.class
 
-# Derby Runtime Database & Logs
+# Database Files (Derby & H2)
 **/derby_data/
 **/derby.log
+**/data/
+*.mv.db
+*.trace.db
 
 # Environment Variables (API Keys)
 **/.env
