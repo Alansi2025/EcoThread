@@ -43,6 +43,8 @@ public class NgoPartner {
 
     private Boolean verified = true;
     private Integer totalClothesReceived = 0;
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String imageUrl;
 
     public NgoPartner() {}

@@ -42,7 +42,10 @@ public class PickupRequest {
     private String category;
     private Integer quantity;
     private String unit;
+    @Column(length = 2000)
     private String conditionDescription;
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String imageUrl;
     private Integer qualityScore;
     private String pickupOrDropoff = "PICKUP"; // "PICKUP" or "DROPOFF"

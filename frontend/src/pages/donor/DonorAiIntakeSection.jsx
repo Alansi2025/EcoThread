@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { aiApi, catalogApi } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { compressImage } from '../../utils/imageCompressor';
 
 const PRESET_SAMPLE_GARMENTS = [
   {
@@ -81,17 +82,17 @@ export const DonorAiIntakeSection = ({ onOpenPassport, onOpenNgoLocator }) => {
   const [fabric, setFabric] = useState("100% Cotton Denim");
   const [size, setSize] = useState("M");
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setCustomImage(reader.result);
+      try {
+        const compressedBase64 = await compressImage(file, 1024, 0.8);
+        setCustomImage(compressedBase64);
         setSelectedSample({
           name: customTitle || file.name.replace(/\.[^/.]+$/, ""),
           category: category,
           fabric: fabric,
-          image: reader.result,
+          image: compressedBase64,
           hasTears: hasTears,
           hasStains: hasStains,
           hasHardwareIssue: hasMissingButtons,
@@ -102,8 +103,27 @@ export const DonorAiIntakeSection = ({ onOpenPassport, onOpenNgoLocator }) => {
         setAssessmentResult(null);
         setIsSubmittedToNgo(false);
         showToast("Garment photo loaded! Click 'Analyze Quality & Status' to inspect.", "info");
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setCustomImage(reader.result);
+          setSelectedSample({
+            name: customTitle || file.name.replace(/\.[^/.]+$/, ""),
+            category: category,
+            fabric: fabric,
+            image: reader.result,
+            hasTears: hasTears,
+            hasStains: hasStains,
+            hasHardwareIssue: hasMissingButtons,
+            hasFading: hasFading,
+            sanitized: true,
+            wearDuration: "Custom Upload"
+          });
+          setAssessmentResult(null);
+          setIsSubmittedToNgo(false);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 

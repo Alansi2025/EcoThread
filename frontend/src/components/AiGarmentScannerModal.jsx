@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { aiApi, catalogApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { compressImage } from '../utils/imageCompressor';
 
 const PRESET_SAMPLE_GARMENTS = [
   {
@@ -77,17 +78,17 @@ export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenN
   const [category, setCategory] = useState("Outerwear");
   const [fabric, setFabric] = useState("100% Cotton Denim");
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setCustomImage(reader.result);
+      try {
+        const compressedBase64 = await compressImage(file, 1024, 0.8);
+        setCustomImage(compressedBase64);
         setSelectedSample({
           name: customTitle || file.name.replace(/\.[^/.]+$/, ""),
           category: category,
           fabric: fabric,
-          image: reader.result,
+          image: compressedBase64,
           hasTears: false,
           hasStains: false,
           hasHardwareIssue: false,
@@ -97,9 +98,28 @@ export const AiGarmentScannerModal = ({ isOpen, onClose, onOpenPassport, onOpenN
         });
         setAssessmentResult(null);
         setIsSubmittedToNgo(false);
-        addToast("Custom garment image loaded! Ready for AI Scan.", "info");
-      };
-      reader.readAsDataURL(file);
+        addToast("Custom garment image processed! Ready for AI Scan.", "info");
+      } catch (err) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setCustomImage(reader.result);
+          setSelectedSample({
+            name: customTitle || file.name.replace(/\.[^/.]+$/, ""),
+            category: category,
+            fabric: fabric,
+            image: reader.result,
+            hasTears: false,
+            hasStains: false,
+            hasHardwareIssue: false,
+            hasFading: false,
+            sanitized: true,
+            wearDuration: "6-12 Months"
+          });
+          setAssessmentResult(null);
+          setIsSubmittedToNgo(false);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { pickupApi, aiApi } from '../../services/api';
+import { compressImage } from '../../utils/imageCompressor';
 import { 
   Camera, 
   Upload, 
@@ -72,16 +73,23 @@ export const DonorCreatePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleImageFile = (e) => {
+  const handleImageFile = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImageUrl(reader.result);
+      try {
+        const compressedBase64 = await compressImage(file, 1024, 0.8);
+        setImageUrl(compressedBase64);
         setAiResult(null);
-        showToast('Garment image loaded! Click "Run AI Quality Inspection" to analyze.', 'info');
-      };
-      reader.readAsDataURL(file);
+        showToast('Garment image processed! Click "Run AI Quality Inspection" to analyze.', 'info');
+      } catch (err) {
+        // Fallback to standard reader
+        const reader = new FileReader();
+        reader.onload = () => {
+          setImageUrl(reader.result);
+          setAiResult(null);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 

@@ -38,7 +38,8 @@ public class InventoryItem {
     @Column(nullable = false)
     private ConditionGrade conditionGrade = ConditionGrade.GRADE_A;
 
-    @Column(length = 1000)
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String imageUrl;
 
     @Column(nullable = false)

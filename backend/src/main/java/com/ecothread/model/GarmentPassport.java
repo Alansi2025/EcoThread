@@ -47,7 +47,8 @@ public class GarmentPassport {
     @Column(length = 1000)
     private String qrCodeData;
 
-    @Column(length = 1000)
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String imageUrl;
 
     @Column(length = 2000)
