@@ -59,3 +59,4 @@ export async function compressImage(file, maxDimension = 1024, quality = 0.8) {
     reader.readAsDataURL(file);
   });
 }
+
